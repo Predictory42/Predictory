@@ -26,6 +26,10 @@ pub struct Event {
     pub completed: bool,
 }
 
+// pub enum EventStatus{
+
+// }
+
 impl Event {
     pub const LEN: usize = DISCRIMINATOR_LENGTH + Event::INIT_SPACE;
     pub const VERSION: u8 = 1;
