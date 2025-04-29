@@ -13,14 +13,17 @@ pub struct Event {
     /// Event authority
     pub authority: Pubkey,
 
-    /// Sale start date
+    /// Event start date
     pub start_date: i64,
 
-    /// Sale end date
+    /// Event end date
     pub end_date: i64,
 
-    /// Sale participation deadline
+    /// Event participation deadline
     pub participation_deadline: Option<i64>,
+
+    /// Event option count
+    pub option_count: u8,
 
     /// Whether the sale is canceled
     pub canceled: bool,
@@ -40,14 +43,14 @@ pub struct EventMeta {
     /// Account version
     pub version: u8,
 
-    /// Sale UUID
+    /// Event UUID
     pub id: u128,
 
-    /// Sale name
+    /// Event name
     pub name: [u8; 32],
 
     // TODO: add image link
-    /// Sale description
+    /// Event description
     pub description: [u8; 256],
 
     /// Deposit statistics

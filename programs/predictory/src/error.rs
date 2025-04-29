@@ -14,4 +14,8 @@ pub enum ProgramError {
     InvalidUUID,
     #[msg("Invalid sale end date")]
     InvalidEndDate,
+    #[msg("Invalid index - must be sequential")]
+    InvalidIndex,
+    #[msg("Event has too many options")]
+    TooManyOptions,
 }
