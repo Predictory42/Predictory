@@ -71,4 +71,12 @@ pub mod predictory {
         ctx.accounts
             .update_event_option(index, event_id, description)
     }
+
+    pub fn cancel_event(ctx: Context<CancelEvent>, event_id: u128) -> Result<()> {
+        ctx.accounts.cancel_event(event_id)
+    }
+
+    pub fn complete_event(ctx: Context<CompleteEvent>, event_id: u128, result: u8) -> Result<()> {
+        ctx.accounts.complete_event(event_id, result)
+    }
 }

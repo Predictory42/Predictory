@@ -340,3 +340,19 @@ impl<'info> CancelEvent<'info> {
         Ok(())
     }
 }
+
+impl<'info> CompleteEvent<'info> {
+    pub fn complete_event(&mut self, event_id: u128, result: u8) -> Result<()> {
+        let event = &mut self.event;
+
+        event.result = Some(result);
+
+        msg!(
+            "Event completed, result - {}: {}",
+            result,
+            uuid::Uuid::from_u128(event_id)
+        );
+
+        Ok(())
+    }
+}
