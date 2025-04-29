@@ -51,4 +51,24 @@ pub mod predictory {
         ctx.accounts
             .update_event_participation_deadline(event_id, deadline)
     }
+
+    pub fn create_event_option(
+        ctx: Context<CreateEventOption>,
+        index: u8,
+        event_id: u128,
+        description: [u8; 256],
+    ) -> Result<()> {
+        ctx.accounts
+            .create_event_option(index, event_id, description)
+    }
+
+    pub fn update_event_option(
+        ctx: Context<UpdateEventOption>,
+        index: u8,
+        event_id: u128,
+        description: [u8; 256],
+    ) -> Result<()> {
+        ctx.accounts
+            .update_event_option(index, event_id, description)
+    }
 }

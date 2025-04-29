@@ -22,13 +22,12 @@ pub struct Event {
     /// Sale participation deadline
     pub participation_deadline: Option<i64>,
 
-    /// Whether the sale is unlocked
-    pub completed: bool,
+    /// Whether the sale is canceled
+    pub canceled: bool,
+
+    /// Index of the outcome option
+    pub result: Option<u8>,
 }
-
-// pub enum EventStatus{
-
-// }
 
 impl Event {
     pub const LEN: usize = DISCRIMINATOR_LENGTH + Event::INIT_SPACE;

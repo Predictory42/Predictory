@@ -8,6 +8,8 @@ pub enum ProgramError {
     IllegalOwner,
     #[msg("Event has already started")]
     EventAlreadyStarted,
+    #[msg("Event is not over")]
+    EventIsNotOver,
     #[msg("Invalid UUID version")]
     InvalidUUID,
     #[msg("Invalid sale end date")]
