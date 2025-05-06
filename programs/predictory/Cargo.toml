@@ -9,6 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "predictory"
 
 [features]
+testing = []
 default = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []

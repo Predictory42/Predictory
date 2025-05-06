@@ -13,6 +13,9 @@ pub struct Event {
     /// Event authority
     pub authority: Pubkey,
 
+    /// Authority stake
+    pub stake: u64,
+
     /// Event start date
     pub start_date: i64,
 
@@ -43,8 +46,8 @@ pub struct EventMeta {
     /// Account version
     pub version: u8,
 
-    /// Event UUID
-    pub id: u128,
+    /// Whether the event is private
+    pub is_private: bool,
 
     /// Event name
     pub name: [u8; 32],
@@ -52,9 +55,6 @@ pub struct EventMeta {
     // TODO: add image link
     /// Event description
     pub description: [u8; 256],
-
-    /// Deposit statistics
-    pub stats: [u64; 5],
 }
 
 impl EventMeta {

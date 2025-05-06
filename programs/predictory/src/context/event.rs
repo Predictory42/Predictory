@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    context::{COMPLETION_DEADLINE, UUID_VERSION},
+    context::{
+        transfer_sol, withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE, UUID_VERSION,
+    },
     error::ProgramError,
     id,
     state::event::{Event, EventMeta},
@@ -77,7 +79,7 @@ pub struct CancelEvent<'info> {
     #[account(
         mut,
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
-        constraint = event.end_date < Clock::get()?.unix_timestamp @ ProgramError::EventIsNotOver,
+        constraint = event.start_date > Clock::get()?.unix_timestamp @ ProgramError::EventAlreadyStarted,
         bump,
     )]
     pub event: Account<'info, Event>,
@@ -101,11 +103,30 @@ pub struct CompleteEvent<'info> {
     pub event: Account<'info, Event>,
 }
 
+#[derive(Accounts)]
+#[instruction(
+    event_id: u128,
+)]
+pub struct WithdrawStake<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        constraint = event.authority == authority.key() @ ProgramError::AuthorityMismatch,
+        constraint = event.end_date + APPELLATION_DEADLINE < Clock::get()?.unix_timestamp @ ProgramError::EventIsNotOver,
+        bump,
+    )]
+    pub event: Account<'info, Event>,
+}
+
 // -------------------------- Arguments ---------------------------- //
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreateEventArgs {
     name: [u8; 32],
+    is_private: bool,
     description: [u8; 256],
     start_date: i64,
     end_date: i64,
@@ -115,22 +136,35 @@ pub struct CreateEventArgs {
 // ------------------------ Implementation ------------------------- //
 
 impl<'info> CreateEvent<'info> {
-    pub fn create_event(&mut self, event_id: u128, args: CreateEventArgs) -> Result<()> {
+    pub fn create_event(
+        &mut self,
+        event_id: u128,
+        stake: u64,
+        args: CreateEventArgs,
+    ) -> Result<()> {
         let id = uuid::Uuid::from_u128(event_id);
 
         self.validate(id, &args)?;
+
+        transfer_sol(
+            self.authority.to_account_info(),
+            self.event.to_account_info(),
+            stake,
+            self.system_program.to_account_info(),
+        )?;
 
         let event = &mut self.event;
         let event_meta = &mut self.event_meta;
 
         event.id = event_id;
         event.authority = self.authority.key();
+        event.stake = stake;
         event.start_date = args.start_date;
         event.end_date = args.end_date;
         event.participation_deadline = args.participation_deadline;
         event.version = Event::VERSION;
 
-        event_meta.id = event_id;
+        event_meta.is_private = args.is_private;
         event_meta.description = args.description;
         event_meta.name = args.name;
         event_meta.version = EventMeta::VERSION;
@@ -191,6 +225,9 @@ impl<'info> UpdateEvent<'info> {
         let event = &mut self.event;
 
         require!(event.start_date < end_date, ProgramError::InvalidEndDate);
+        if let Some(deadline) = event.participation_deadline {
+            require!(deadline <= end_date, ProgramError::InvalidEndDate);
+        }
 
         event.end_date = end_date;
 
@@ -249,6 +286,31 @@ impl<'info> CompleteEvent<'info> {
         msg!(
             "Event completed, result - {}: {}",
             result,
+            uuid::Uuid::from_u128(event_id)
+        );
+
+        Ok(())
+    }
+}
+
+impl<'info> WithdrawStake<'info> {
+    pub fn withdraw(&mut self, event_id: u128) -> Result<()> {
+        // TODO: check if:
+        // 1. event is not canceled
+        // 2. event is completed
+        // 3. There is no appellation
+
+        // TODO: what happens with his trust coins?
+
+        withdraw_sol(
+            &self.event.to_account_info(),
+            &self.authority.to_account_info(),
+            self.event.stake,
+        )?;
+
+        msg!(
+            "Stake withdrawn from event - {}: {}",
+            self.event.stake,
             uuid::Uuid::from_u128(event_id)
         );
 

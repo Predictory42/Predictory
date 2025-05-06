@@ -14,9 +14,10 @@ pub mod predictory {
     pub fn create_event(
         ctx: Context<CreateEvent>,
         event_id: u128,
+        stake: u64,
         args: CreateEventArgs,
     ) -> Result<()> {
-        ctx.accounts.create_event(event_id, args)
+        ctx.accounts.create_event(event_id, stake, args)
     }
 
     pub fn update_event_name(
@@ -78,5 +79,9 @@ pub mod predictory {
 
     pub fn complete_event(ctx: Context<CompleteEvent>, event_id: u128, result: u8) -> Result<()> {
         ctx.accounts.complete_event(event_id, result)
+    }
+
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>, event_id: u128) -> Result<()> {
+        ctx.accounts.withdraw(event_id)
     }
 }

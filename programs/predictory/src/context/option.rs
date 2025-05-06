@@ -1,7 +1,10 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    context::MAX_OPTION_COUNT, error::ProgramError, id, state::{event::Event, option::EventOption}
+    context::MAX_OPTION_COUNT,
+    error::ProgramError,
+    id,
+    state::{event::Event, option::EventOption},
 };
 // --------------------------- Context ----------------------------- //
 
@@ -74,7 +77,10 @@ impl<'info> CreateEventOption<'info> {
         let event = &mut self.event;
 
         require!(index == event.option_count, ProgramError::InvalidIndex);
-        require!(event.option_count < MAX_OPTION_COUNT, ProgramError::TooManyOptions);
+        require!(
+            event.option_count < MAX_OPTION_COUNT,
+            ProgramError::TooManyOptions
+        );
 
         option.event_id = event_id;
         option.description = description;

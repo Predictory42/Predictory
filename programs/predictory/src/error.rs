@@ -18,4 +18,10 @@ pub enum ProgramError {
     InvalidIndex,
     #[msg("Event has too many options")]
     TooManyOptions,
+    #[msg("Event is inactive")]
+    InactiveEvent,
+    #[msg("Event is still active")]
+    ActiveEvent,
+    #[msg("Stake can be withdrawn only after the event is over and appellation time has passed")]
+    EarlyStakeWithdraw,
 }
