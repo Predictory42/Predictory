@@ -13,6 +13,9 @@ pub struct EventOption {
     /// Option description
     pub description: [u8; 256],
 
+    /// Option votes
+    pub votes: u64,
+
     /// Option vault balance
     pub vault_balance: u64,
 }

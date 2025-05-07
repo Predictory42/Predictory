@@ -92,4 +92,8 @@ pub mod predictory {
     pub fn withdraw_stake(ctx: Context<WithdrawStake>, event_id: u128) -> Result<()> {
         ctx.accounts.withdraw(event_id)
     }
+
+    pub fn vote(ctx: Context<Vote>, event_id: u128, option_ix: u8, amount: u64) -> Result<()> {
+        ctx.accounts.vote(event_id, option_ix, amount)
+    }
 }

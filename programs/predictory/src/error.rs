@@ -24,4 +24,12 @@ pub enum ProgramError {
     ActiveEvent,
     #[msg("Stake can be withdrawn only after the event is over and appellation time has passed")]
     EarlyStakeWithdraw,
+    #[msg("Participation deadline passed")]
+    ParticipationDeadlinePassed,
+    #[msg("Event is canceled")]
+    CanceledEvent,
+    #[msg("This option has lost")]
+    LosingOption,
+    #[msg("Event is not cancelled")]
+    EventIsNotCancelled
 }

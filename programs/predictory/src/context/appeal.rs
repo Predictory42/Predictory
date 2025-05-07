@@ -1,0 +1,319 @@
+use anchor_lang::prelude::*;
+
+use crate::{
+    context::{
+        transfer_sol, withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE, UUID_VERSION,
+    },
+    error::ProgramError,
+    id,
+    state::event::{Event, EventMeta},
+};
+// --------------------------- Context ----------------------------- //
+
+#[derive(Accounts)]
+#[instruction(
+    event_id: u128,
+)]
+pub struct CreateEvent<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        init,
+        payer = authority,
+        owner = id(),
+        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        bump,
+        space = Event::LEN
+    )]
+    pub event: Account<'info, Event>,
+
+    #[account(
+        init,
+        payer = authority,
+        owner = id(),
+        seeds = [b"event_meta".as_ref(), &event_id.to_le_bytes()],
+        bump,
+        space = EventMeta::LEN
+    )]
+    pub event_meta: Account<'info, EventMeta>,
+
+    pub system_program: Program<'info, System>,
+
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+#[instruction(
+    event_id: u128,
+)]
+pub struct UpdateEvent<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        constraint = event.authority == authority.key() @ ProgramError::AuthorityMismatch,
+        constraint = event.start_date > Clock::get()?.unix_timestamp @ ProgramError::EventAlreadyStarted,
+        bump,
+    )]
+    pub event: Account<'info, Event>,
+
+    #[account(
+        mut,
+        seeds = [b"event_meta".as_ref(), &event_id.to_le_bytes()],
+        bump,
+    )]
+    pub event_meta: Account<'info, EventMeta>,
+}
+
+#[derive(Accounts)]
+#[instruction(
+    event_id: u128,
+)]
+pub struct CancelEvent<'info> {
+    #[account(mut)]
+    pub sender: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        constraint = event.start_date > Clock::get()?.unix_timestamp @ ProgramError::EventAlreadyStarted,
+        bump,
+    )]
+    pub event: Account<'info, Event>,
+}
+
+#[derive(Accounts)]
+#[instruction(
+    event_id: u128,
+)]
+pub struct CompleteEvent<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        constraint = event.authority == authority.key() @ ProgramError::AuthorityMismatch,
+        constraint = event.end_date < Clock::get()?.unix_timestamp @ ProgramError::EventIsNotOver,
+        bump,
+    )]
+    pub event: Account<'info, Event>,
+}
+
+#[derive(Accounts)]
+#[instruction(
+    event_id: u128,
+)]
+pub struct WithdrawStake<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        constraint = event.authority == authority.key() @ ProgramError::AuthorityMismatch,
+        constraint = event.end_date + APPELLATION_DEADLINE < Clock::get()?.unix_timestamp @ ProgramError::EventIsNotOver,
+        bump,
+    )]
+    pub event: Account<'info, Event>,
+}
+
+// -------------------------- Arguments ---------------------------- //
+
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct CreateEventArgs {
+    name: [u8; 32],
+    is_private: bool,
+    description: [u8; 256],
+    start_date: i64,
+    end_date: i64,
+    participation_deadline: Option<i64>,
+}
+
+// ------------------------ Implementation ------------------------- //
+
+impl<'info> CreateEvent<'info> {
+    pub fn create_event(
+        &mut self,
+        event_id: u128,
+        stake: u64,
+        args: CreateEventArgs,
+    ) -> Result<()> {
+        let id = uuid::Uuid::from_u128(event_id);
+
+        self.validate(id, &args)?;
+
+        transfer_sol(
+            self.authority.to_account_info(),
+            self.event.to_account_info(),
+            stake,
+            self.system_program.to_account_info(),
+        )?;
+
+        let event = &mut self.event;
+        let event_meta = &mut self.event_meta;
+
+        event.id = event_id;
+        event.authority = self.authority.key();
+        event.stake = stake;
+        event.start_date = args.start_date;
+        event.end_date = args.end_date;
+        event.participation_deadline = args.participation_deadline;
+        event.version = Event::VERSION;
+
+        event_meta.is_private = args.is_private;
+        event_meta.description = args.description;
+        event_meta.name = args.name;
+        event_meta.version = EventMeta::VERSION;
+
+        msg!("Event {} initialized", id);
+
+        Ok(())
+    }
+
+    pub fn validate(&mut self, id: uuid::Uuid, args: &CreateEventArgs) -> Result<()> {
+        require!(
+            id.get_version_num() == UUID_VERSION,
+            ProgramError::InvalidUUID
+        );
+
+        require!(
+            args.start_date < args.end_date,
+            ProgramError::InvalidEndDate
+        );
+
+        if let Some(deadline) = args.participation_deadline {
+            require!(
+                (args.start_date..=args.end_date).contains(&deadline),
+                ProgramError::InvalidEndDate
+            );
+        }
+
+        Ok(())
+    }
+}
+
+impl<'info> UpdateEvent<'info> {
+    pub fn update_event_name(&mut self, _event_id: u128, name: [u8; 32]) -> Result<()> {
+        let event_meta = &mut self.event_meta;
+
+        event_meta.name = name;
+
+        msg!("Event name updated");
+
+        Ok(())
+    }
+
+    pub fn update_event_description(
+        &mut self,
+        _event_id: u128,
+        description: [u8; 256],
+    ) -> Result<()> {
+        let event_meta = &mut self.event_meta;
+
+        event_meta.description = description;
+
+        msg!("Event description updated");
+
+        Ok(())
+    }
+
+    pub fn update_event_end_date(&mut self, _event_id: u128, end_date: i64) -> Result<()> {
+        let event = &mut self.event;
+
+        require!(event.start_date < end_date, ProgramError::InvalidEndDate);
+        if let Some(deadline) = event.participation_deadline {
+            require!(deadline <= end_date, ProgramError::InvalidEndDate);
+        }
+
+        event.end_date = end_date;
+
+        msg!("Event end date updated");
+
+        Ok(())
+    }
+
+    pub fn update_event_participation_deadline(
+        &mut self,
+        _event_id: u128,
+        participation_deadline: Option<i64>,
+    ) -> Result<()> {
+        let event = &mut self.event;
+
+        if let Some(deadline) = participation_deadline {
+            require!(
+                (event.start_date..=event.end_date).contains(&deadline),
+                ProgramError::InvalidEndDate
+            );
+        }
+
+        event.participation_deadline = participation_deadline;
+
+        msg!("Event end participation deadline updated");
+
+        Ok(())
+    }
+}
+
+impl<'info> CancelEvent<'info> {
+    pub fn cancel_event(&mut self, event_id: u128) -> Result<()> {
+        let event = &mut self.event;
+
+        // TODO: what happens with his trust coins?
+
+        let now = Clock::get()?.unix_timestamp;
+
+        require!(
+            event.authority == self.sender.key() || now > event.end_date + COMPLETION_DEADLINE,
+            ProgramError::AuthorityMismatch
+        );
+
+        event.canceled = true;
+
+        msg!("Event cancelled: {}", uuid::Uuid::from_u128(event_id));
+
+        Ok(())
+    }
+}
+
+impl<'info> CompleteEvent<'info> {
+    pub fn complete_event(&mut self, event_id: u128, result: u8) -> Result<()> {
+        let event = &mut self.event;
+
+        event.result = Some(result);
+
+        msg!(
+            "Event completed, result - {}: {}",
+            result,
+            uuid::Uuid::from_u128(event_id)
+        );
+
+        Ok(())
+    }
+}
+
+impl<'info> WithdrawStake<'info> {
+    pub fn withdraw(&mut self, event_id: u128) -> Result<()> {
+        // TODO: check if:
+        // 1. event is not canceled
+        // 2. event is completed
+        // 3. There is no appellation
+
+        withdraw_sol(
+            &self.event.to_account_info(),
+            &self.authority.to_account_info(),
+            self.event.stake,
+        )?;
+
+        msg!(
+            "Stake withdrawn from event - {}: {}",
+            self.event.stake,
+            uuid::Uuid::from_u128(event_id)
+        );
+
+        Ok(())
+    }
+}

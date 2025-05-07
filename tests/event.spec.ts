@@ -296,6 +296,7 @@ describe("General event test", () => {
       expect(fetchedEventOptionAccount.eventId.eq(eventId)).toBeTruthy();
       expect(fetchedEventOptionAccount.description).toEqual(description);
       expect(fetchedEventOptionAccount.vaultBalance.eq(new BN(0))).toBeTruthy();
+      expect(fetchedEventOptionAccount.votes.eq(new BN(0))).toBeTruthy();
     });
   });
 

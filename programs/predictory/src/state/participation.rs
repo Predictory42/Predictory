@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 
 #[account]
 #[derive(InitSpace)]
-pub struct Participant {
+pub struct Participation {
     /// Participant round version, default to 1
     pub version: u8,
 
@@ -23,7 +23,7 @@ pub struct Participant {
     pub is_claimed: bool,
 }
 
-impl Participant {
-    pub const LEN: usize = DISCRIMINATOR_LENGTH + Participant::INIT_SPACE;
+impl Participation {
+    pub const LEN: usize = DISCRIMINATOR_LENGTH + Participation::INIT_SPACE;
     pub const VERSION: u8 = 1;
 }
