@@ -11,6 +11,14 @@ declare_id!("CEYFY2CbDJ3TywKT3tzef6BcqE4NoviFTjhpURTK714U");
 pub mod predictory {
     use super::*;
 
+    // TODO:
+    // 1. Add state
+    // 3. Participation
+
+    pub fn create_user(ctx: Context<CreateUser>, name: [u8; 32]) -> Result<()> {
+        ctx.accounts.create_user(name)
+    }
+
     pub fn create_event(
         ctx: Context<CreateEvent>,
         event_id: u128,

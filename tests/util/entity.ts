@@ -16,6 +16,13 @@ export function findContractStateAddress(): [PublicKey, number] {
   );
 }
 
+export function findUserAddress(sender: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [bufferFromString("user"), sender.toBytes()],
+    TEST_PROGRAM_ID
+  );
+}
+
 export function findEventAddress(eventId: BN): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [bufferFromString("event"), eventId.toBuffer("le", 16)],

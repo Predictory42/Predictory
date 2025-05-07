@@ -3,7 +3,7 @@ use anchor_lang::{prelude::*, solana_program::native_token::lamports_to_sol};
 use crate::{
     error::ProgramError,
     id,
-    state::{event::Event, option::EventOption, participant::Participant},
+    state::{event::Event, option::EventOption, participation::Participant},
 };
 
 // --------------------------- Context ----------------------------- //

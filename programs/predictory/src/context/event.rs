@@ -262,6 +262,8 @@ impl<'info> CancelEvent<'info> {
     pub fn cancel_event(&mut self, event_id: u128) -> Result<()> {
         let event = &mut self.event;
 
+        // TODO: what happens with his trust coins?
+
         let now = Clock::get()?.unix_timestamp;
 
         require!(
@@ -299,8 +301,6 @@ impl<'info> WithdrawStake<'info> {
         // 1. event is not canceled
         // 2. event is completed
         // 3. There is no appellation
-
-        // TODO: what happens with his trust coins?
 
         withdraw_sol(
             &self.event.to_account_info(),
