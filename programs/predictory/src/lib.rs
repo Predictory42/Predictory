@@ -55,22 +55,22 @@ pub mod predictory {
 
     pub fn create_event_option(
         ctx: Context<CreateEventOption>,
-        index: u8,
         event_id: u128,
+        index: u8,
         description: [u8; 256],
     ) -> Result<()> {
         ctx.accounts
-            .create_event_option(index, event_id, description)
+            .create_event_option(event_id, index, description)
     }
 
     pub fn update_event_option(
         ctx: Context<UpdateEventOption>,
-        index: u8,
         event_id: u128,
+        index: u8,
         description: [u8; 256],
     ) -> Result<()> {
         ctx.accounts
-            .update_event_option(index, event_id, description)
+            .update_event_option(event_id, index, description)
     }
 
     pub fn cancel_event(ctx: Context<CancelEvent>, event_id: u128) -> Result<()> {

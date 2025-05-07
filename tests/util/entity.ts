@@ -30,6 +30,20 @@ export function findEventMetaAddress(eventId: BN): [PublicKey, number] {
   );
 }
 
+export function findEventOptionAddress(
+  eventId: BN,
+  index: number
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [
+      bufferFromString("option"),
+      eventId.toBuffer("le", 16),
+      Buffer.from([index]),
+    ],
+    TEST_PROGRAM_ID
+  );
+}
+
 export function findParticipantAddress(
   eventId: BN,
   sender: PublicKey

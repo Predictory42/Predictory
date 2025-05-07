@@ -69,8 +69,8 @@ pub struct UpdateEventOption<'info> {
 impl<'info> CreateEventOption<'info> {
     pub fn create_event_option(
         &mut self,
-        index: u8,
         event_id: u128,
+        index: u8,
         description: [u8; 256],
     ) -> Result<()> {
         let option = &mut self.option;
@@ -100,8 +100,8 @@ impl<'info> CreateEventOption<'info> {
 impl<'info> UpdateEventOption<'info> {
     pub fn update_event_option(
         &mut self,
-        index: u8,
         event_id: u128,
+        index: u8,
         description: [u8; 256],
     ) -> Result<()> {
         let option = &mut self.option;

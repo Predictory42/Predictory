@@ -84,5 +84,5 @@ export function bnToUuid(id: BN | number[]): string {
     throw RangeError("Invalid UUID");
   }
 
-  return uuidv4({ random: buf });
+  return uuidv4({ random: Uint8Array.from(buf) });
 }
