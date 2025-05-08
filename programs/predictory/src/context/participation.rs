@@ -187,6 +187,9 @@ impl<'info> ClaimEventReward<'info> {
     pub fn claim_event_reward(&mut self, event_id: u128) -> Result<()> {
         require!(self.event.result.is_some(), ProgramError::EventIsNotOver);
 
+        // TODO: release creator stake
+        // TODO: platform rent
+
         let res = self.event.result.unwrap();
 
         require!(res == self.participation.option, ProgramError::LosingOption);

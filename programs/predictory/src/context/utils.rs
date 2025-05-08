@@ -1,17 +1,5 @@
 use anchor_lang::{prelude::*, system_program};
 
-pub const UUID_VERSION: usize = 4;
-
-pub const COMPLETION_DEADLINE: i64 = 60 * 60 * 24; // 1 days
-
-#[cfg(feature = "testing")]
-pub const APPELLATION_DEADLINE: i64 = 0; // Only for testing
-
-#[cfg(not(feature = "testing"))]
-pub const APPELLATION_DEADLINE: i64 = 60 * 60 * 24; // 1 days
-
-pub const MAX_OPTION_COUNT: u8 = 20;
-
 /// This method transfers sol from user to program account
 pub fn transfer_sol<'info>(
     from: AccountInfo<'info>,

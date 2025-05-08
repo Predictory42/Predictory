@@ -35,10 +35,7 @@ pub mod predictory {
         ctx.accounts.set_multiplier(multiplier)
     }
 
-    pub fn set_event_price(
-        ctx: Context<UpdateContractState>,
-        event_price: u64,
-    ) -> Result<()> {
+    pub fn set_event_price(ctx: Context<UpdateContractState>, event_price: u64) -> Result<()> {
         ctx.accounts.set_price(event_price)
     }
 

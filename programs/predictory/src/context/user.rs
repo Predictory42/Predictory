@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    context::{transfer_sol, withdraw_sol},
+    context::{transfer_sol, withdraw_sol, INITIAL_LVL},
     error::ProgramError,
     id,
     state::user::User,
@@ -63,11 +63,9 @@ impl<'info> CreateUser<'info> {
     pub fn create_user(&mut self, name: [u8; 32]) -> Result<()> {
         let user = &mut self.user;
 
-        // TODO: PRICE TRUST/SOL
-        // TODO: Add trust coins to play (eq 0,1 sol) !!!!
-
         user.name = name;
         user.payer = self.sender.key();
+        user.trust_lvl = INITIAL_LVL;
         user.version = User::VERSION;
 
         msg!("New user created {}", user.payer,);
@@ -86,7 +84,6 @@ impl<'info> TransferStake<'info> {
         )?;
 
         let user = &mut self.user;
-
         user.stake += stake;
 
         msg!("New user created {}", user.payer,);
@@ -98,7 +95,8 @@ impl<'info> TransferStake<'info> {
 impl<'info> WithdrawStake<'info> {
     pub fn withdraw(&mut self, event_id: u128) -> Result<()> {
         let user = &self.user;
-        require!(user.stake < user.locked_stake, ProgramError::AllStakeLocked);
+
+        require!(user.stake > user.locked_stake, ProgramError::AllStakeLocked);
 
         let amount = user.stake - user.locked_stake;
 

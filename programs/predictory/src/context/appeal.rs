@@ -136,25 +136,12 @@ pub struct CreateEventArgs {
 // ------------------------ Implementation ------------------------- //
 
 impl<'info> CreateEvent<'info> {
-    pub fn create_event(
-        &mut self,
-        event_id: u128,
-        stake: u64,
-        args: CreateEventArgs,
-    ) -> Result<()> {
+    pub fn create_event(&mut self, event_id: u128, args: CreateEventArgs) -> Result<()> {
         let id = uuid::Uuid::from_u128(event_id);
 
         self.validate(id, &args)?;
 
         // TODO: stake is constant param in contract state (?)
-
-        // TODO: move to another method in user vault!
-        transfer_sol(
-            self.authority.to_account_info(),
-            self.event.to_account_info(),
-            stake,
-            self.system_program.to_account_info(),
-        )?;
 
         let event = &mut self.event;
         let event_meta = &mut self.event_meta;

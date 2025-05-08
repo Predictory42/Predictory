@@ -38,4 +38,6 @@ pub enum ProgramError {
     EventIsNotCancelled,
     #[msg("All user stake is locked")]
     AllStakeLocked,
+    #[msg("Low stake to create event")]
+    StakeTooLow,
 }

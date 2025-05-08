@@ -16,7 +16,9 @@ pub struct User {
     /// User locked stake sales
     pub locked_stake: u64,
 
-    // TODO: add trust lvl
+    /// User trust level
+    pub trust_lvl: u64,
+
     /// User name
     pub name: [u8; 32],
 }

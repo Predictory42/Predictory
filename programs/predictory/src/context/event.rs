@@ -2,11 +2,15 @@ use anchor_lang::prelude::*;
 
 use crate::{
     context::{
-        transfer_sol, withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE, UUID_VERSION,
+        APPELLATION_DEADLINE, COMPLETION_DEADLINE, UUID_VERSION,
     },
     error::ProgramError,
     id,
-    state::event::{Event, EventMeta},
+    state::{
+        contract_state::State,
+        event::{Event, EventMeta},
+        user::User,
+    },
 };
 // --------------------------- Context ----------------------------- //
 
@@ -17,6 +21,19 @@ use crate::{
 pub struct CreateEvent<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"user".as_ref(), authority.key().as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
+
+    #[account(
+        seeds = [b"state".as_ref()],
+        bump,
+    )]
+    pub state: Account<'info, State>,
 
     #[account(
         init,
@@ -146,12 +163,15 @@ impl<'info> CreateEvent<'info> {
 
         self.validate(id, &args)?;
 
-        // transfer_sol(
-        //     self.authority.to_account_info(),
-        //     self.event.to_account_info(),
-        //     stake,
-        //     self.system_program.to_account_info(),
-        // )?;
+        let user = &mut self.user;
+        let available_stake = user.stake - user.locked_stake;
+
+        require!(
+            available_stake >= self.state.event_price,
+            ProgramError::StakeTooLow
+        );
+
+        user.locked_stake += stake;
 
         let event = &mut self.event;
         let event_meta = &mut self.event_meta;
@@ -289,29 +309,6 @@ impl<'info> CompleteEvent<'info> {
         msg!(
             "Event completed, result - {}: {}",
             result,
-            uuid::Uuid::from_u128(event_id)
-        );
-
-        Ok(())
-    }
-}
-
-impl<'info> ReleaseStake<'info> {
-    pub fn withdraw(&mut self, event_id: u128) -> Result<()> {
-        // TODO: check if:
-        // 1. event is not canceled
-        // 2. event is completed
-        // 3. There is no appellation
-
-        withdraw_sol(
-            &self.event.to_account_info(),
-            &self.authority.to_account_info(),
-            self.event.stake,
-        )?;
-
-        msg!(
-            "Stake withdrawn from event - {}: {}",
-            self.event.stake,
             uuid::Uuid::from_u128(event_id)
         );
 
