@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import { parse as uuidParse, v4 as uuidv4 } from "uuid";
 
 export const TEST_PROGRAM_ID = new PublicKey(
-  "CEYFY2CbDJ3TywKT3tzef6BcqE4NoviFTjhpURTK714U"
+  "6jLLqwQ4svVrTEfgqJHuMpEtCVkLyPFFEMDiwwiaE5iA"
 );
 
 export const ONE_SOL = new BN(1_000_000_000);

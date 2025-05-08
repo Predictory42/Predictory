@@ -1,7 +1,10 @@
 use anchor_lang::{prelude::*, solana_program::native_token::lamports_to_sol};
 
 use crate::{
-    context::{transfer_sol, withdraw_sol}, error::ProgramError, id, state::{appeal::Appeal, event::Event, option::EventOption, participation::Participation}
+    context::{transfer_sol, withdraw_sol},
+    error::ProgramError,
+    id,
+    state::{appeal::Appeal, event::Event, option::EventOption, participation::Participation},
 };
 
 // --------------------------- Context ----------------------------- //
@@ -136,7 +139,6 @@ pub struct AppealResult<'info> {
     pub system_program: Program<'info, System>,
 }
 
-
 // ------------------------ Implementation ------------------------- //
 
 impl<'info> Vote<'info> {
@@ -154,7 +156,6 @@ impl<'info> Vote<'info> {
         }
 
         require!(!event.canceled, ProgramError::CanceledEvent);
-
 
         let participation = &mut self.participation;
 
@@ -184,26 +185,27 @@ impl<'info> Vote<'info> {
 
 impl<'info> ClaimEventReward<'info> {
     pub fn claim_event_reward(&mut self, event_id: u128) -> Result<()> {
-        
-        require!(
-            self.event.result.is_some(),
-            ProgramError::EventIsNotOver
-        );
+        require!(self.event.result.is_some(), ProgramError::EventIsNotOver);
 
         let res = self.event.result.unwrap();
 
-        require!(
-            res == self.participation.option,
-            ProgramError::LosingOption
-        );
+        require!(res == self.participation.option, ProgramError::LosingOption);
+
+        // AVAILABLE for winners and losers
 
         // TODO: calculate amount
+        // amount * suc_pool_volume/all_volume (!!!!!!!!!!)
         let amount = 123;
+
+        // TODO: trust coin amount (separate method)
+        // PRICE SOL/TRUST
+        // Winner - % from  sol reward
+        // Loser - % from sol deposit
 
         withdraw_sol(
             &self.event.to_account_info(),
             &self.sender.to_account_info(),
-            amount
+            amount,
         )?;
 
         self.participation.is_claimed = true;
@@ -222,10 +224,9 @@ impl<'info> ClaimEventReward<'info> {
 
 impl<'info> Recharge<'info> {
     pub fn racharge(&mut self, event_id: u128) -> Result<()> {
-        require!(
-            self.event.canceled,
-            ProgramError::EventIsNotCancelled
-        );
+        require!(self.event.canceled, ProgramError::EventIsNotCancelled);
+
+        // TODO: do i need to mint trust to user?
 
         withdraw_sol(
             &self.event.to_account_info(),
@@ -248,12 +249,19 @@ impl<'info> Recharge<'info> {
 
 impl<'info> AppealResult<'info> {
     pub fn appeal(&mut self, _event_id: u128) -> Result<()> {
-        require!(
-            self.event.result.is_some(),
-            ProgramError::EventIsNotOver
-        );
+        require!(self.event.result.is_some(), ProgramError::EventIsNotOver);
+
+        // a - participant count
+        // b - disagree count
+        // c - general trust lvl
+        // d - disagree trust lvl
+        // e - general pool volume of disagree
+        // f - general pool volume of losers
 
         // TODO: add logic
+        // 1. Create appeal
+        // 2. Appeal lvl += (b/a) > (d/c) * (e/f)
+        // 3. if appeal is successful - event is cancelled
 
         Ok(())
     }

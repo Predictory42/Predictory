@@ -107,7 +107,7 @@ pub struct CompleteEvent<'info> {
 #[instruction(
     event_id: u128,
 )]
-pub struct WithdrawStake<'info> {
+pub struct ReleaseStake<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
@@ -146,12 +146,12 @@ impl<'info> CreateEvent<'info> {
 
         self.validate(id, &args)?;
 
-        transfer_sol(
-            self.authority.to_account_info(),
-            self.event.to_account_info(),
-            stake,
-            self.system_program.to_account_info(),
-        )?;
+        // transfer_sol(
+        //     self.authority.to_account_info(),
+        //     self.event.to_account_info(),
+        //     stake,
+        //     self.system_program.to_account_info(),
+        // )?;
 
         let event = &mut self.event;
         let event_meta = &mut self.event_meta;
@@ -165,6 +165,7 @@ impl<'info> CreateEvent<'info> {
         event.version = Event::VERSION;
 
         event_meta.is_private = args.is_private;
+        event_meta.event_id = event_id;
         event_meta.description = args.description;
         event_meta.name = args.name;
         event_meta.version = EventMeta::VERSION;
@@ -295,7 +296,7 @@ impl<'info> CompleteEvent<'info> {
     }
 }
 
-impl<'info> WithdrawStake<'info> {
+impl<'info> ReleaseStake<'info> {
     pub fn withdraw(&mut self, event_id: u128) -> Result<()> {
         // TODO: check if:
         // 1. event is not canceled

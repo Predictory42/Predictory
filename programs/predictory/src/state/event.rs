@@ -46,6 +46,9 @@ pub struct EventMeta {
     /// Account version
     pub version: u8,
 
+    /// Event UUID
+    pub event_id: u128,
+
     /// Whether the event is private
     pub is_private: bool,
 

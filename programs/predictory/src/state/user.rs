@@ -10,6 +10,13 @@ pub struct User {
     /// User wallet account
     pub payer: Pubkey,
 
+    /// User stake
+    pub stake: u64,
+
+    /// User locked stake sales
+    pub locked_stake: u64,
+
+    // TODO: add trust lvl
     /// User name
     pub name: [u8; 32],
 }

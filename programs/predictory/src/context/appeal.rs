@@ -146,6 +146,9 @@ impl<'info> CreateEvent<'info> {
 
         self.validate(id, &args)?;
 
+        // TODO: stake is constant param in contract state (?)
+
+        // TODO: move to another method in user vault!
         transfer_sol(
             self.authority.to_account_info(),
             self.event.to_account_info(),
@@ -264,6 +267,12 @@ impl<'info> CancelEvent<'info> {
 
         // TODO: what happens with his trust coins?
 
+        // NOTE:
+        // 1. Admin before end date
+        // 2. Admin after end date - 0,33 sol to admin
+        // 3. User after end date + COMPLETION_DEADLINE - 0,33 sol to admin
+        // 4. Appelation process - user loses all stake/burn tokens ???
+
         let now = Clock::get()?.unix_timestamp;
 
         require!(
@@ -300,7 +309,10 @@ impl<'info> WithdrawStake<'info> {
         // TODO: check if:
         // 1. event is not canceled
         // 2. event is completed
-        // 3. There is no appellation
+        // 3. There is no success appellation
+
+        // TODO: move it to iser
+        // TODO: create methos deposit stake in user vault
 
         withdraw_sol(
             &self.event.to_account_info(),

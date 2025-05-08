@@ -4,6 +4,10 @@ use anchor_lang::prelude::*;
 pub enum ProgramError {
     #[msg("Authority mismatched")]
     AuthorityMismatch,
+    #[msg("Invalid program data account")]
+    InvalidProgramData,
+    #[msg("Invalid program account")]
+    InvalidProgramAccount,
     #[msg("Account has illegal owner")]
     IllegalOwner,
     #[msg("Event has already started")]
@@ -31,5 +35,7 @@ pub enum ProgramError {
     #[msg("This option has lost")]
     LosingOption,
     #[msg("Event is not cancelled")]
-    EventIsNotCancelled
+    EventIsNotCancelled,
+    #[msg("All user stake is locked")]
+    AllStakeLocked,
 }

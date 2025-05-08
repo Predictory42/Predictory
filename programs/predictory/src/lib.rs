@@ -5,18 +5,53 @@ mod context;
 mod error;
 mod state;
 
-declare_id!("CEYFY2CbDJ3TywKT3tzef6BcqE4NoviFTjhpURTK714U");
+declare_id!("6jLLqwQ4svVrTEfgqJHuMpEtCVkLyPFFEMDiwwiaE5iA");
 
 #[program]
 pub mod predictory {
     use super::*;
 
-    // TODO:
-    // 1. Add state
-    // 3. Participation
+    pub fn initialize_contract_state(
+        ctx: Context<InitializeContractState>,
+        authority: Pubkey,
+        multiplier: u64,
+        event_price: u64,
+    ) -> Result<()> {
+        ctx.accounts
+            .initialize_contract_state(authority, multiplier, event_price)
+    }
+
+    pub fn set_contract_authority(
+        ctx: Context<UpdateContractState>,
+        authority: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.set_authority(authority)
+    }
+
+    pub fn set_contract_multiplier(
+        ctx: Context<UpdateContractState>,
+        multiplier: u64,
+    ) -> Result<()> {
+        ctx.accounts.set_multiplier(multiplier)
+    }
+
+    pub fn set_event_price(
+        ctx: Context<UpdateContractState>,
+        event_price: u64,
+    ) -> Result<()> {
+        ctx.accounts.set_price(event_price)
+    }
 
     pub fn create_user(ctx: Context<CreateUser>, name: [u8; 32]) -> Result<()> {
         ctx.accounts.create_user(name)
+    }
+
+    pub fn transfer_stake(ctx: Context<TransferStake>, stake: u64) -> Result<()> {
+        ctx.accounts.transfer_stake(stake)
+    }
+
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>, event_id: u128) -> Result<()> {
+        ctx.accounts.withdraw(event_id)
     }
 
     pub fn create_event(
@@ -89,11 +124,19 @@ pub mod predictory {
         ctx.accounts.complete_event(event_id, result)
     }
 
-    pub fn withdraw_stake(ctx: Context<WithdrawStake>, event_id: u128) -> Result<()> {
-        ctx.accounts.withdraw(event_id)
-    }
-
     pub fn vote(ctx: Context<Vote>, event_id: u128, option_ix: u8, amount: u64) -> Result<()> {
         ctx.accounts.vote(event_id, option_ix, amount)
+    }
+
+    pub fn claim_event_reward(ctx: Context<ClaimEventReward>, event_id: u128) -> Result<()> {
+        ctx.accounts.claim_event_reward(event_id)
+    }
+
+    pub fn racharge(ctx: Context<Recharge>, event_id: u128) -> Result<()> {
+        ctx.accounts.racharge(event_id)
+    }
+
+    pub fn appeal(ctx: Context<AppealResult>, event_id: u128) -> Result<()> {
+        ctx.accounts.appeal(event_id)
     }
 }
