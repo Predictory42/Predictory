@@ -13,3 +13,4 @@ pub const APPELLATION_DEADLINE: i64 = 60 * 60 * 24; // 1 days
 pub const MAX_OPTION_COUNT: u8 = 20;
 
 pub const INITIAL_LVL: u64 = 5;
+pub const TRUST_REWARD: u64 = 5;

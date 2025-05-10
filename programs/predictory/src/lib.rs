@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use anchor_lang::prelude::*;
 use context::*;
 
@@ -5,7 +7,7 @@ mod context;
 mod error;
 mod state;
 
-declare_id!("6jLLqwQ4svVrTEfgqJHuMpEtCVkLyPFFEMDiwwiaE5iA");
+declare_id!("Hb2nMQLGRK1htQqMbDBU6ejjUNmR2X2UHJDy3hEXyjG7");
 
 #[program]
 pub mod predictory {
@@ -16,9 +18,16 @@ pub mod predictory {
         authority: Pubkey,
         multiplier: u64,
         event_price: u64,
+        platform_fee: u64,
+        org_reward: u64,
     ) -> Result<()> {
-        ctx.accounts
-            .initialize_contract_state(authority, multiplier, event_price)
+        ctx.accounts.initialize_contract_state(
+            authority,
+            multiplier,
+            event_price,
+            platform_fee,
+            org_reward,
+        )
     }
 
     pub fn set_contract_authority(

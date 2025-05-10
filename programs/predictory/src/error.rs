@@ -14,6 +14,8 @@ pub enum ProgramError {
     EventAlreadyStarted,
     #[msg("Event is not over")]
     EventIsNotOver,
+    #[msg("Low event volume")]
+    LowEventVolume,
     #[msg("Invalid UUID version")]
     InvalidUUID,
     #[msg("Invalid sale end date")]
@@ -28,10 +30,18 @@ pub enum ProgramError {
     ActiveEvent,
     #[msg("Stake can be withdrawn only after the event is over and appellation time has passed")]
     EarlyStakeWithdraw,
+    #[msg("Reward can be withdrawn only after the event is over and completion time + appellation time has passed")]
+    EarlyClaim,
+    #[msg("Appellation deadline passed")]
+    AppellationDeadlinePassed,
     #[msg("Participation deadline passed")]
     ParticipationDeadlinePassed,
     #[msg("Event is canceled")]
     CanceledEvent,
+    #[msg("Already claimed")]
+    AlreadyClaimed,
+    #[msg("Already appealed")]
+    AlreadyAppealed,
     #[msg("This option has lost")]
     LosingOption,
     #[msg("Event is not cancelled")]

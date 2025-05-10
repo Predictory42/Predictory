@@ -1,9 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    context::{
-        APPELLATION_DEADLINE, COMPLETION_DEADLINE, UUID_VERSION,
-    },
+    context::{withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE, UUID_VERSION},
     error::ProgramError,
     id,
     state::{
@@ -93,6 +91,24 @@ pub struct CancelEvent<'info> {
     #[account(mut)]
     pub sender: Signer<'info>,
 
+    /// CHECK: this is admin account
+    #[account(mut)]
+    pub contract_admin: UncheckedAccount<'info>,
+
+    #[account(
+        seeds = [b"state".as_ref()],
+        constraint = state.authority == contract_admin.key() @ ProgramError::AuthorityMismatch,
+        bump,
+    )]
+    pub state: Account<'info, State>,
+
+    #[account(
+        mut,
+        seeds = [b"user".as_ref(), event.authority.as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
+
     #[account(
         mut,
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
@@ -111,28 +127,16 @@ pub struct CompleteEvent<'info> {
     pub authority: Signer<'info>,
 
     #[account(
-        mut,
-        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
-        constraint = event.authority == authority.key() @ ProgramError::AuthorityMismatch,
-        constraint = event.end_date < Clock::get()?.unix_timestamp @ ProgramError::EventIsNotOver,
+        seeds = [b"state".as_ref()],
         bump,
     )]
-    pub event: Account<'info, Event>,
-}
-
-#[derive(Accounts)]
-#[instruction(
-    event_id: u128,
-)]
-pub struct ReleaseStake<'info> {
-    #[account(mut)]
-    pub authority: Signer<'info>,
+    pub state: Account<'info, State>,
 
     #[account(
         mut,
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
         constraint = event.authority == authority.key() @ ProgramError::AuthorityMismatch,
-        constraint = event.end_date + APPELLATION_DEADLINE < Clock::get()?.unix_timestamp @ ProgramError::EventIsNotOver,
+        constraint = event.end_date < Clock::get()?.unix_timestamp @ ProgramError::EventIsNotOver,
         bump,
     )]
     pub event: Account<'info, Event>,
@@ -160,18 +164,14 @@ impl<'info> CreateEvent<'info> {
         args: CreateEventArgs,
     ) -> Result<()> {
         let id = uuid::Uuid::from_u128(event_id);
-
         self.validate(id, &args)?;
 
         let user = &mut self.user;
-        let available_stake = user.stake - user.locked_stake;
 
         require!(
-            available_stake >= self.state.event_price,
+            user.stake >= self.state.event_price,
             ProgramError::StakeTooLow
         );
-
-        user.locked_stake += stake;
 
         let event = &mut self.event;
         let event_meta = &mut self.event_meta;
@@ -189,6 +189,15 @@ impl<'info> CreateEvent<'info> {
         event_meta.description = args.description;
         event_meta.name = args.name;
         event_meta.version = EventMeta::VERSION;
+
+        user.stake -= stake;
+        user.locked_stake += stake;
+
+        withdraw_sol(
+            &self.user.to_account_info(),
+            &self.event.to_account_info(),
+            stake,
+        )?;
 
         msg!("Event {} initialized", id);
 
@@ -281,9 +290,8 @@ impl<'info> UpdateEvent<'info> {
 
 impl<'info> CancelEvent<'info> {
     pub fn cancel_event(&mut self, event_id: u128) -> Result<()> {
+        let event_acc = self.event.to_account_info();
         let event = &mut self.event;
-
-        // TODO: what happens with his trust coins?
 
         let now = Clock::get()?.unix_timestamp;
 
@@ -291,6 +299,24 @@ impl<'info> CancelEvent<'info> {
             event.authority == self.sender.key() || now > event.end_date + COMPLETION_DEADLINE,
             ProgramError::AuthorityMismatch
         );
+
+        // TODO: what happens with his trust coins?
+        // TODO: Do i need to add appell on appel?
+        if event.start_date > now {
+            self.user.locked_stake -= event.stake;
+            self.user.stake -= event.stake;
+
+            withdraw_sol(
+                &event_acc,
+                &self.contract_admin.to_account_info(),
+                event.stake,
+            )?;
+        } else {
+            self.user.locked_stake -= event.stake;
+            self.user.stake += event.stake;
+
+            withdraw_sol(&event_acc, &self.user.to_account_info(), event.stake)?;
+        }
 
         event.canceled = true;
 
@@ -303,6 +329,12 @@ impl<'info> CancelEvent<'info> {
 impl<'info> CompleteEvent<'info> {
     pub fn complete_event(&mut self, event_id: u128, result: u8) -> Result<()> {
         let event = &mut self.event;
+
+        // TODO: check this
+        require!(
+            event.total_amount >= self.state.platform_fee + self.state.org_reward,
+            ProgramError::LowEventVolume
+        );
 
         event.result = Some(result);
 

@@ -2,7 +2,6 @@ use anchor_lang::prelude::*;
 
 use crate::{
     context::{transfer_sol, withdraw_sol, INITIAL_LVL},
-    error::ProgramError,
     id,
     state::user::User,
 };
@@ -96,14 +95,10 @@ impl<'info> WithdrawStake<'info> {
     pub fn withdraw(&mut self, event_id: u128) -> Result<()> {
         let user = &self.user;
 
-        require!(user.stake > user.locked_stake, ProgramError::AllStakeLocked);
-
-        let amount = user.stake - user.locked_stake;
-
         withdraw_sol(
             &self.user.to_account_info(),
             &self.sender.to_account_info(),
-            amount,
+            user.stake,
         )?;
 
         msg!(

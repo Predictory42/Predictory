@@ -3,8 +3,9 @@
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "create-event": "ts-node scripts/createEvent",
-    "create-option": "ts-node scripts/createOption"
+    "create-event": "ts-node scripts/createEvent.ts",
+    "create-option": "ts-node scripts/createOption.ts",
+    "initialize-contract-state": "ts-node scripts/initializeContractState.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",

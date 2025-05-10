@@ -13,7 +13,7 @@ pub struct User {
     /// User stake
     pub stake: u64,
 
-    /// User locked stake sales
+    /// User locked stake (only for view)
     pub locked_stake: u64,
 
     /// User trust level

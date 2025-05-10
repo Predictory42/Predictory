@@ -55,12 +55,16 @@ impl<'info> InitializeContractState<'info> {
         authority: Pubkey,
         multiplier: u64,
         event_price: u64,
+        platform_fee: u64,
+        org_reward: u64,
     ) -> Result<()> {
         let state = &mut self.state;
 
         state.authority = authority;
         state.multiplier = multiplier;
         state.event_price = event_price;
+        state.platform_fee = platform_fee;
+        state.org_reward = org_reward;
         state.version = State::VERSION;
 
         msg!("Contract state initialized");

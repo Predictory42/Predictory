@@ -28,6 +28,15 @@ pub struct Event {
     /// Event option count
     pub option_count: u8,
 
+    /// Event participation count
+    pub participation_count: u64,
+
+    /// Total amount of tokens in all pools
+    pub total_amount: u64,
+
+    /// Total amount of tokens in all pools
+    pub total_trust: u64,
+
     /// Whether the sale is canceled
     pub canceled: bool,
 

@@ -21,6 +21,9 @@ pub struct Participation {
 
     /// Whether the user has claimed tokens or recharged SOL
     pub is_claimed: bool,
+
+    /// Whether the user has appealed
+    pub appealed: bool,
 }
 
 impl Participation {

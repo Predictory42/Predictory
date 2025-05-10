@@ -1,10 +1,13 @@
 use anchor_lang::{prelude::*, solana_program::native_token::lamports_to_sol};
 
 use crate::{
-    context::{transfer_sol, withdraw_sol},
+    context::{event, withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE},
     error::ProgramError,
     id,
-    state::{appeal::Appeal, event::Event, option::EventOption, participation::Participation},
+    state::{
+        appeal::Appellation, contract_state::State, event::Event, option::EventOption,
+        participation::Participation, user::User,
+    },
 };
 
 // --------------------------- Context ----------------------------- //
@@ -17,6 +20,13 @@ use crate::{
 pub struct Vote<'info> {
     #[account(mut)]
     pub sender: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"user".as_ref(), sender.key().as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
 
     #[account(
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
@@ -51,6 +61,26 @@ pub struct Vote<'info> {
 pub struct ClaimEventReward<'info> {
     #[account(mut)]
     pub sender: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"user".as_ref(), sender.key().as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
+
+    #[account(
+        mut,
+        seeds = [b"user".as_ref(), event.authority.key().as_ref()],
+        bump,
+    )]
+    pub event_admin: Account<'info, User>,
+
+    #[account(
+        seeds = [b"state".as_ref()],
+        bump,
+    )]
+    pub state: Account<'info, State>,
 
     #[account(
         mut,
@@ -94,6 +124,13 @@ pub struct Recharge<'info> {
 
     #[account(
         mut,
+        seeds = [b"user".as_ref(), sender.key().as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
+
+    #[account(
+        mut,
         seeds = [b"participant".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
         constraint = participant.payer == sender.key() @ ProgramError::AuthorityMismatch,
         bump,
@@ -111,18 +148,28 @@ pub struct AppealResult<'info> {
     #[account(mut)]
     pub sender: Signer<'info>,
 
+    /// CHECK: this is admin account
+    #[account(mut)]
+    pub contract_admin: UncheckedAccount<'info>,
+
+    #[account(
+            seeds = [b"state".as_ref()],
+            constraint = state.authority == contract_admin.key() @ ProgramError::AuthorityMismatch,
+            bump,
+        )]
+    pub state: Account<'info, State>,
+
     #[account(
         init_if_needed,
         payer = sender,
         owner = id(),
         seeds = [b"appeal".as_ref(), &event_id.to_le_bytes()],
         bump,
-        space = Appeal::LEN
+        space = Appellation::LEN
     )]
-    pub appeal: Account<'info, Appeal>,
+    pub appellation: Account<'info, Appellation>,
 
     #[account(
-        mut,
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
         constraint = event.end_date < Clock::get()?.unix_timestamp @ ProgramError::ActiveEvent,
         bump,
@@ -130,11 +177,23 @@ pub struct AppealResult<'info> {
     pub event: Account<'info, Event>,
 
     #[account(
-        seeds = [b"participant".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
-        constraint = participant.payer == sender.key() @ ProgramError::AuthorityMismatch,
+        seeds = [b"option".as_ref(), &event_id.to_le_bytes(), &[participation.option]],
         bump,
     )]
-    pub participant: Account<'info, Participation>,
+    pub option: Account<'info, EventOption>,
+
+    #[account(
+        seeds = [b"user".as_ref(), sender.key().as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
+
+    #[account(
+        seeds = [b"participant".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
+        constraint = participation.payer == sender.key() @ ProgramError::AuthorityMismatch,
+        bump,
+    )]
+    pub participation: Account<'info, Participation>,
 
     pub system_program: Program<'info, System>,
 }
@@ -143,7 +202,10 @@ pub struct AppealResult<'info> {
 
 impl<'info> Vote<'info> {
     pub fn vote(&mut self, event_id: u128, option_ix: u8, amount: u64) -> Result<()> {
-        let event = &self.event;
+        let event = &mut self.event;
+        let option = &mut self.option;
+        let user = &mut self.user;
+
         let now = Clock::get()?.unix_timestamp;
 
         require!(
@@ -165,11 +227,19 @@ impl<'info> Vote<'info> {
         participation.deposited_amount = amount;
         participation.version = Participation::VERSION;
 
-        transfer_sol(
-            self.sender.to_account_info(),
-            self.event.to_account_info(),
+        event.participation_count += 1;
+        event.total_trust += user.trust_lvl;
+        event.total_amount += amount;
+
+        option.vault_balance += amount;
+
+        user.stake -= amount;
+        user.locked_stake += amount;
+
+        withdraw_sol(
+            &self.user.to_account_info(),
+            &self.event.to_account_info(),
             amount,
-            self.system_program.to_account_info(),
         )?;
 
         msg!(
@@ -185,39 +255,59 @@ impl<'info> Vote<'info> {
 
 impl<'info> ClaimEventReward<'info> {
     pub fn claim_event_reward(&mut self, event_id: u128) -> Result<()> {
-        require!(self.event.result.is_some(), ProgramError::EventIsNotOver);
+        let user = &mut self.user;
+        let event = &self.event;
 
-        // TODO: release creator stake
-        // TODO: platform rent
+        require!(event.result.is_some(), ProgramError::EventIsNotOver);
+        require!(!self.participation.is_claimed, ProgramError::AlreadyClaimed);
 
-        let res = self.event.result.unwrap();
+        let now = Clock::get()?.unix_timestamp;
 
-        require!(res == self.participation.option, ProgramError::LosingOption);
+        require!(
+            now > event.end_date + COMPLETION_DEADLINE + APPELLATION_DEADLINE,
+            ProgramError::EarlyClaim
+        );
 
-        // AVAILABLE for winners and losers
+        // Releasing creator stake
+        if event.stake != 0 {
+            let amount = event.stake + self.state.org_reward;
+            self.event_admin.locked_stake -= event.stake;
+            self.event_admin.stake += amount;
 
-        // TODO: calculate amount
-        // amount * suc_pool_volume/all_volume (!!!!!!!!!!)
-        let amount = 123;
+            withdraw_sol(
+                &self.event.to_account_info(),
+                &self.event_admin.to_account_info(),
+                amount,
+            )?;
+        }
 
-        // TODO: trust coin amount (separate method)
-        // PRICE SOL/TRUST
-        // Winner - % from  sol reward
-        // Loser - % from sol deposit
+        // TODO - self.state.org_reward is % from event?
+        if (event.result.unwrap() == self.participation.option) {
+            //TODO: check that user got all prev stake
+            let available_for_winners =
+                event.total_amount * (1 - self.state.platform_fee - self.state.org_reward);
+            let claim_amount = self.participation.deposited_amount / self.option.vault_balance
+                * available_for_winners;
 
-        withdraw_sol(
-            &self.event.to_account_info(),
-            &self.sender.to_account_info(),
-            amount,
-        )?;
+            user.stake += claim_amount;
+            user.locked_stake -= self.participation.deposited_amount;
+
+            withdraw_sol(
+                &self.event.to_account_info(),
+                &self.user.to_account_info(),
+                claim_amount,
+            )?;
+
+        // TODO: trust coin amount
+        } else {
+            user.locked_stake -= self.participation.deposited_amount;
+        }
 
         self.participation.is_claimed = true;
 
-        // LAMPORTS_PER_SOL - because DEFAULT_MINT_DECIMALS = SOL DECIMALS
         msg!(
-            "User {} claimed {} SOL from {} event",
+            "User {} claimed {} event",
             self.participation.payer,
-            lamports_to_sol(amount),
             uuid::Uuid::from_u128(event_id)
         );
 
@@ -229,11 +319,14 @@ impl<'info> Recharge<'info> {
     pub fn racharge(&mut self, event_id: u128) -> Result<()> {
         require!(self.event.canceled, ProgramError::EventIsNotCancelled);
 
-        // TODO: do i need to mint trust to user?
+        let user = &mut self.user;
+
+        user.stake += self.participant.deposited_amount;
+        user.locked_stake -= self.participant.deposited_amount;
 
         withdraw_sol(
             &self.event.to_account_info(),
-            &self.sender.to_account_info(),
+            &self.user.to_account_info(),
             self.participant.deposited_amount,
         )?;
 
@@ -253,18 +346,40 @@ impl<'info> Recharge<'info> {
 impl<'info> AppealResult<'info> {
     pub fn appeal(&mut self, _event_id: u128) -> Result<()> {
         require!(self.event.result.is_some(), ProgramError::EventIsNotOver);
+        require!(!self.participation.is_claimed, ProgramError::AlreadyClaimed);
+        require!(!self.participation.appealed, ProgramError::AlreadyAppealed);
 
-        // a - participant count
-        // b - disagree count
-        // c - general trust lvl
-        // d - disagree trust lvl
-        // e - general pool volume of disagree
-        // f - general pool volume of losers
+        let now = Clock::get()?.unix_timestamp;
+        let appellation = &mut self.appellation;
+        let participation = &mut self.participation;
+        let event = &self.event;
 
-        // TODO: add logic
-        // 1. Create appeal
-        // 2. Appeal lvl += (b/a) > (d/c) * (e/f)
-        // 3. if appeal is successful - event is cancelled
+        require!(
+            now <= event.end_date + COMPLETION_DEADLINE + APPELLATION_DEADLINE,
+            ProgramError::AppellationDeadlinePassed
+        );
+
+        appellation.disagree_count += 1;
+        appellation.disagree_trust_lvl += self.user.trust_lvl;
+        appellation.disagree_volume += participation.deposited_amount;
+        participation.appealed = true;
+
+        let disagree_ratio = appellation.disagree_count as f64 / event.participation_count as f64;
+        let trust_ratio = appellation.disagree_trust_lvl as f64 / event.total_trust as f64;
+        let volume_ratio = appellation.disagree_volume as f64
+            / (event.total_amount - self.option.vault_balance) as f64;
+
+        // Closing event
+        if disagree_ratio < trust_ratio * volume_ratio {
+            self.user.locked_stake -= event.stake;
+            self.user.stake -= event.stake;
+
+            withdraw_sol(
+                &event.to_account_info(),
+                &self.contract_admin.to_account_info(),
+                event.stake,
+            )?;
+        }
 
         Ok(())
     }

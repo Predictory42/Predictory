@@ -15,6 +15,12 @@ pub struct State {
 
     /// Event price
     pub event_price: u64,
+
+    /// Event price
+    pub platform_fee: u64,
+
+    /// Event price
+    pub org_reward: u64,
 }
 
 impl State {
