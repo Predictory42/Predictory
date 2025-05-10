@@ -9,16 +9,16 @@ skip-lint = false
 upgradeable = true
 
 [programs.localnet]
-predictory = "Hb2nMQLGRK1htQqMbDBU6ejjUNmR2X2UHJDy3hEXyjG7"
+predictory = "8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se"
 
 [programs.devnet]
-predictory = "Hb2nMQLGRK1htQqMbDBU6ejjUNmR2X2UHJDy3hEXyjG7"
+predictory = "8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

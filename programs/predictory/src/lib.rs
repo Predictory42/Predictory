@@ -7,7 +7,7 @@ mod context;
 mod error;
 mod state;
 
-declare_id!("Hb2nMQLGRK1htQqMbDBU6ejjUNmR2X2UHJDy3hEXyjG7");
+declare_id!("8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se");
 
 #[program]
 pub mod predictory {
@@ -63,10 +63,9 @@ pub mod predictory {
     pub fn create_event(
         ctx: Context<CreateEvent>,
         event_id: u128,
-        stake: u64,
         args: CreateEventArgs,
     ) -> Result<()> {
-        ctx.accounts.create_event(event_id, stake, args)
+        ctx.accounts.create_event(event_id, args)
     }
 
     pub fn update_event_name(

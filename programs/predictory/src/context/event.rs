@@ -1,4 +1,4 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::stake};
 
 use crate::{
     context::{withdraw_sol, COMPLETION_DEADLINE, UUID_VERSION},
@@ -160,7 +160,6 @@ impl<'info> CreateEvent<'info> {
     pub fn create_event(
         &mut self,
         event_id: u128,
-        stake: u64,
         args: CreateEventArgs,
     ) -> Result<()> {
         let id = uuid::Uuid::from_u128(event_id);
@@ -175,6 +174,7 @@ impl<'info> CreateEvent<'info> {
 
         let event = &mut self.event;
         let event_meta = &mut self.event_meta;
+        let stake = self.state.event_price;
 
         event.id = event_id;
         event.authority = self.authority.key();

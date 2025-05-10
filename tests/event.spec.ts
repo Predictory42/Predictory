@@ -36,7 +36,6 @@ const authority = web3.Keypair.generate();
 const another_authority = web3.Keypair.generate();
 
 let eventId = uuidToBn(uuidv4());
-let stake = ONE_SOL;
 
 const now = new BN(Math.round(new Date().getTime()) / 1000);
 const args = {
@@ -143,12 +142,13 @@ describe("General event test", () => {
 
   describe("create_event", () => {
     it("success", async () => {
+      const [user] = findUserAddress(authority.publicKey);
       const [event] = findEventAddress(eventId);
       const [eventMeta] = findEventMetaAddress(eventId);
 
       // Update:
       await program.methods
-        .createEvent(eventId, stake, args)
+        .createEvent(eventId, args)
         .accounts({
           authority: authority.publicKey,
         })
@@ -160,7 +160,7 @@ describe("General event test", () => {
 
       expect(fetchedEventAccount.id.eq(eventId)).toBeTruthy();
       expect(fetchedEventAccount.authority).toEqual(authority.publicKey);
-      expect(fetchedEventAccount.stake.eq(stake)).toBeTruthy();
+      expect(fetchedEventAccount.stake.eq(eventPrice)).toBeTruthy();
       expect(fetchedEventAccount.startDate).toEqual(args.startDate);
       expect(fetchedEventAccount.endDate).toEqual(args.endDate);
       expect(fetchedEventAccount.participationDeadline).toEqual(
@@ -169,6 +169,11 @@ describe("General event test", () => {
       expect(fetchedEventAccount.optionCount).toEqual(0);
       expect(fetchedEventAccount.canceled).toEqual(false);
       expect(fetchedEventAccount.result).toBeNull();
+
+      const fetchedUserAccount = await program.account.user.fetch(user);
+
+      expect(fetchedUserAccount.stake.eq(ONE_SOL.sub(eventPrice))).toBeTruthy();
+      expect(fetchedUserAccount.lockedStake.eq(eventPrice)).toBeTruthy();
 
       // Fetching event meta:
       const fetchedEventMetaAccount = await program.account.eventMeta.fetch(
@@ -251,29 +256,92 @@ describe("General event test", () => {
     });
   });
 
-  // describe("cancel_event", () => {
-  //   beforeAll(async () => {
-  //     await createNewEvent();
-  //   });
+  describe("cancel_event", () => {
+    beforeAll(async () => {
+      await createNewEvent();
+    });
 
-  //   it("success", async () => {
-  //     const [event] = findEventAddress(eventId);
-  //     // TODO: also add cancel by user
-  //     // Cancel event:
-  //     await program.methods
-  //       .cancelEvent(eventId)
-  //       .accounts({
-  //         sender: authority.publicKey,
-  //       })
-  //       .signers([authority])
-  //       .rpc();
+    it("before start", async () => {
+      const [state] = findContractStateAddress();
+      const fetchedStateAccount = await program.account.state.fetch(state);
 
-  //     // Fetching event:
-  //     const fetchedEventAccount = await program.account.event.fetch(event);
+      const [event] = findEventAddress(eventId);
+      // TODO: also add cancel by user
+      // Cancel event:
 
-  //     expect(fetchedEventAccount.canceled).toBeTruthy();
-  //   });
-  // });
+      try {
+        await program.methods
+          .cancelEvent(eventId)
+          .accounts({
+            sender: authority.publicKey,
+            contractAdmin: fetchedStateAccount.authority,
+          })
+          .signers([authority])
+          .rpc();
+      } catch (error) {
+        throw new Error(error);
+      }
+
+      // Fetching event:
+      const fetchedEventAccount = await program.account.event.fetch(event);
+
+      expect(fetchedEventAccount.canceled).toBeTruthy();
+    });
+
+    xit("after start", async () => {
+      const [state] = findContractStateAddress();
+      const fetchedStateAccount = await program.account.state.fetch(state);
+
+      const [event] = findEventAddress(eventId);
+      // TODO: also add cancel by user
+      // Cancel event:
+
+      try {
+        await program.methods
+          .cancelEvent(eventId)
+          .accounts({
+            sender: authority.publicKey,
+            contractAdmin: fetchedStateAccount.authority,
+          })
+          .signers([authority])
+          .rpc();
+      } catch (error) {
+        throw new Error(error);
+      }
+
+      // Fetching event:
+      const fetchedEventAccount = await program.account.event.fetch(event);
+
+      expect(fetchedEventAccount.canceled).toBeTruthy();
+    });
+
+    xit("by user", async () => {
+      const [state] = findContractStateAddress();
+      const fetchedStateAccount = await program.account.state.fetch(state);
+
+      const [event] = findEventAddress(eventId);
+      // TODO: also add cancel by user
+      // Cancel event:
+
+      try {
+        await program.methods
+          .cancelEvent(eventId)
+          .accounts({
+            sender: authority.publicKey,
+            contractAdmin: fetchedStateAccount.authority,
+          })
+          .signers([authority])
+          .rpc();
+      } catch (error) {
+        throw new Error(error);
+      }
+
+      // Fetching event:
+      const fetchedEventAccount = await program.account.event.fetch(event);
+
+      expect(fetchedEventAccount.canceled).toBeTruthy();
+    });
+  });
 
   describe("complete_event", () => {
     beforeAll(async () => {
@@ -436,13 +504,13 @@ async function createNewEvent(startDate?: BN, endDate?: BN) {
       .rpc();
 
     await program.methods
-      .createEvent(eventId, stake, newArgs)
+      .createEvent(eventId, newArgs)
       .accounts({
         authority: authority.publicKey,
       })
       .signers([authority])
       .rpc();
   } catch (error) {
-    console.log("Error creating event", error);
+    throw new Error(error);
   }
 }
