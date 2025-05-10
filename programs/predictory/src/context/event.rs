@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    context::{withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE, UUID_VERSION},
+    context::{withdraw_sol, COMPLETION_DEADLINE, UUID_VERSION},
     error::ProgramError,
     id,
     state::{
@@ -329,12 +329,6 @@ impl<'info> CancelEvent<'info> {
 impl<'info> CompleteEvent<'info> {
     pub fn complete_event(&mut self, event_id: u128, result: u8) -> Result<()> {
         let event = &mut self.event;
-
-        // TODO: check this
-        require!(
-            event.total_amount >= self.state.platform_fee + self.state.org_reward,
-            ProgramError::LowEventVolume
-        );
 
         event.result = Some(result);
 

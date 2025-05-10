@@ -1,7 +1,7 @@
 use anchor_lang::{prelude::*, solana_program::native_token::lamports_to_sol};
 
 use crate::{
-    context::{event, withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE},
+    context::{withdraw_sol, APPELLATION_DEADLINE, COMPLETION_DEADLINE},
     error::ProgramError,
     id,
     state::{
@@ -62,6 +62,10 @@ pub struct ClaimEventReward<'info> {
     #[account(mut)]
     pub sender: Signer<'info>,
 
+    /// CHECK: this is admin account
+    #[account(mut)]
+    pub contract_admin: UncheckedAccount<'info>,
+
     #[account(
         mut,
         seeds = [b"user".as_ref(), sender.key().as_ref()],
@@ -78,6 +82,7 @@ pub struct ClaimEventReward<'info> {
 
     #[account(
         seeds = [b"state".as_ref()],
+        constraint = state.authority == contract_admin.key() @ ProgramError::AuthorityMismatch,
         bump,
     )]
     pub state: Account<'info, State>,
@@ -198,6 +203,44 @@ pub struct AppealResult<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+#[instruction(
+    event_id: u128,
+)]
+pub struct BurnTrust<'info> {
+    #[account(mut)]
+    pub sender: Signer<'info>,
+
+    #[account(
+            seeds = [b"state".as_ref()],
+            bump,
+        )]
+    pub state: Account<'info, State>,
+
+    #[account(
+        seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        constraint = event.end_date < Clock::get()?.unix_timestamp @ ProgramError::ActiveEvent,
+        bump,
+    )]
+    pub event: Account<'info, Event>,
+
+    #[account(
+        mut,
+        seeds = [b"user".as_ref(), sender.key().as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
+
+    #[account(
+        seeds = [b"participant".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
+        constraint = participation.payer == sender.key() @ ProgramError::AuthorityMismatch,
+        bump,
+    )]
+    pub participation: Account<'info, Participation>,
+
+    pub system_program: Program<'info, System>,
+}
+
 // ------------------------ Implementation ------------------------- //
 
 impl<'info> Vote<'info> {
@@ -268,8 +311,21 @@ impl<'info> ClaimEventReward<'info> {
             ProgramError::EarlyClaim
         );
 
+        // TODO: check this
+        // let org_reward = event.total_amount * self.state.org_reward / 100;
+        // let available_for_winners =
+        // event.total_amount * (1 - self.state.platform_fee - self.state.org_reward);
+
+        let org_reward = event.total_amount * self.state.org_reward / 100;
+
+        let available_for_winners = if (event.total_amount < self.state.platform_fee + org_reward) {
+            event.total_amount
+        } else {
+            event.total_amount - self.state.platform_fee - org_reward
+        };
+
         // Releasing creator stake
-        if event.stake != 0 {
+        if event.stake != 0 && available_for_winners != event.total_amount {
             let amount = event.stake + self.state.org_reward;
             self.event_admin.locked_stake -= event.stake;
             self.event_admin.stake += amount;
@@ -279,13 +335,14 @@ impl<'info> ClaimEventReward<'info> {
                 &self.event_admin.to_account_info(),
                 amount,
             )?;
-        }
 
-        // TODO - self.state.org_reward is % from event?
+            withdraw_sol(
+                &event.to_account_info(),
+                &self.contract_admin.to_account_info(),
+                self.state.platform_fee,
+            )?;
+        }
         if (event.result.unwrap() == self.participation.option) {
-            //TODO: check that user got all prev stake
-            let available_for_winners =
-                event.total_amount * (1 - self.state.platform_fee - self.state.org_reward);
             let claim_amount = self.participation.deposited_amount / self.option.vault_balance
                 * available_for_winners;
 
@@ -380,6 +437,38 @@ impl<'info> AppealResult<'info> {
                 event.stake,
             )?;
         }
+
+        Ok(())
+    }
+}
+
+impl<'info> BurnTrust<'info> {
+    pub fn burn_trust(&mut self, _event_id: u128, trust_amount: u64) -> Result<()> {
+        require!(self.event.result.is_some(), ProgramError::EventIsNotOver);
+        require!(!self.participation.is_claimed, ProgramError::AlreadyClaimed);
+        require!(!self.participation.appealed, ProgramError::AlreadyAppealed);
+
+        let now = Clock::get()?.unix_timestamp;
+        let event = &self.event;
+        let user = &mut self.user;
+
+        require!(
+            now <= event.end_date + COMPLETION_DEADLINE + APPELLATION_DEADLINE,
+            ProgramError::AppellationDeadlinePassed
+        );
+
+        // TODO: calculate this!!!
+        let amount = 123;
+
+        user.stake += amount;
+        user.locked_stake -= amount;
+        user.trust_lvl -= trust_amount;
+
+        withdraw_sol(
+            &self.event.to_account_info(),
+            &self.user.to_account_info(),
+            amount,
+        )?;
 
         Ok(())
     }

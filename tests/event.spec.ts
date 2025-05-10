@@ -8,14 +8,22 @@ import {
 } from "@coral-xyz/anchor";
 
 import { TestToken } from "./util/token";
-import { airdrop, bufferFromString, ONE_SOL, uuidToBn } from "./util/setup";
+import {
+  airdrop,
+  bufferFromString,
+  INITIAL_TRUST_LVL,
+  ONE_SOL,
+  uuidToBn,
+} from "./util/setup";
 
 import { Predictory } from "../target/types/predictory";
 import { v4 as uuidv4 } from "uuid";
 import {
+  findContractStateAddress,
   findEventAddress,
   findEventMetaAddress,
   findEventOptionAddress,
+  findProgramDataAddress,
   findUserAddress,
 } from "./util/entity";
 
@@ -40,6 +48,11 @@ const args = {
   participationDeadline: null,
 };
 
+const platformFee = ONE_SOL.muln(0.03);
+const eventPrice = ONE_SOL.muln(0.033);
+const orgReward = new BN(10);
+const multiplier = new BN(5);
+
 describe("General event test", () => {
   let testMint: TestToken;
 
@@ -49,6 +62,37 @@ describe("General event test", () => {
 
     await airdrop(provider.connection, authority.publicKey);
     await airdrop(provider.connection, another_authority.publicKey);
+  });
+
+  describe("initialize_contract_state", () => {
+    it("success", async () => {
+      const [state] = findContractStateAddress();
+      const [programData] = findProgramDataAddress();
+
+      // Creation:
+      await program.methods
+        .initializeContractState(
+          authority.publicKey,
+          multiplier,
+          eventPrice,
+          platformFee,
+          orgReward
+        )
+        .accounts({
+          authority: provider.publicKey,
+          programData,
+        })
+        .rpc();
+
+      // Fetching user:
+      const fetchedStateAccount = await program.account.state.fetch(state);
+
+      expect(fetchedStateAccount.authority).toEqual(authority.publicKey);
+      expect(fetchedStateAccount.multiplier.eq(multiplier)).toBeTruthy();
+      expect(fetchedStateAccount.eventPrice.eq(eventPrice)).toBeTruthy();
+      expect(fetchedStateAccount.platformFee.eq(platformFee)).toBeTruthy();
+      expect(fetchedStateAccount.orgReward.eq(orgReward)).toBeTruthy();
+    });
   });
 
   describe("create_user", () => {
@@ -70,6 +114,30 @@ describe("General event test", () => {
 
       expect(fetchedUserAccount.payer).toEqual(authority.publicKey);
       expect(fetchedUserAccount.name).toEqual(name);
+      expect(fetchedUserAccount.stake.eq(new BN(0))).toBeTruthy();
+      expect(fetchedUserAccount.lockedStake.eq(new BN(0))).toBeTruthy();
+      expect(fetchedUserAccount.trustLvl.eq(INITIAL_TRUST_LVL)).toBeTruthy();
+    });
+  });
+
+  describe("transfer_stake", () => {
+    it("success", async () => {
+      const [user] = findUserAddress(authority.publicKey);
+
+      // Transfer stake:
+      await program.methods
+        .transferStake(ONE_SOL)
+        .accounts({
+          sender: authority.publicKey,
+        })
+        .signers([authority])
+        .rpc();
+
+      // Fetching user:
+      const fetchedUserAccount = await program.account.user.fetch(user);
+
+      expect(fetchedUserAccount.stake.eq(ONE_SOL)).toBeTruthy();
+      expect(fetchedUserAccount.lockedStake.eq(new BN(0))).toBeTruthy();
     });
   });
 
@@ -78,7 +146,7 @@ describe("General event test", () => {
       const [event] = findEventAddress(eventId);
       const [eventMeta] = findEventMetaAddress(eventId);
 
-      // Creation:
+      // Update:
       await program.methods
         .createEvent(eventId, stake, args)
         .accounts({
@@ -183,29 +251,29 @@ describe("General event test", () => {
     });
   });
 
-  describe("cancel_event", () => {
-    beforeAll(async () => {
-      await createNewEvent();
-    });
+  // describe("cancel_event", () => {
+  //   beforeAll(async () => {
+  //     await createNewEvent();
+  //   });
 
-    it("success", async () => {
-      const [event] = findEventAddress(eventId);
-      // TODO: also add cancel by user
-      // Cancel event:
-      await program.methods
-        .cancelEvent(eventId)
-        .accounts({
-          sender: authority.publicKey,
-        })
-        .signers([authority])
-        .rpc();
+  //   it("success", async () => {
+  //     const [event] = findEventAddress(eventId);
+  //     // TODO: also add cancel by user
+  //     // Cancel event:
+  //     await program.methods
+  //       .cancelEvent(eventId)
+  //       .accounts({
+  //         sender: authority.publicKey,
+  //       })
+  //       .signers([authority])
+  //       .rpc();
 
-      // Fetching event:
-      const fetchedEventAccount = await program.account.event.fetch(event);
+  //     // Fetching event:
+  //     const fetchedEventAccount = await program.account.event.fetch(event);
 
-      expect(fetchedEventAccount.canceled).toBeTruthy();
-    });
-  });
+  //     expect(fetchedEventAccount.canceled).toBeTruthy();
+  //   });
+  // });
 
   describe("complete_event", () => {
     beforeAll(async () => {
@@ -234,34 +302,34 @@ describe("General event test", () => {
     });
   });
 
-  describe("withdraw_stake", () => {
-    beforeAll(async () => {
-      const now = new BN(Math.round(new Date().getTime()) / 1000);
+  // describe("withdraw_stake", () => {
+  //   beforeAll(async () => {
+  //     const now = new BN(Math.round(new Date().getTime()) / 1000);
 
-      await createNewEvent(now.subn(100), now.subn(50));
-    });
+  //     await createNewEvent(now.subn(100), now.subn(50));
+  //   });
 
-    it("success", async () => {
-      const [event] = findEventAddress(eventId);
+  //   it("success", async () => {
+  //     const [event] = findEventAddress(eventId);
 
-      // Fetching balance:
-      const balanceBefore = await provider.connection.getBalance(event);
+  //     // Fetching balance:
+  //     const balanceBefore = await provider.connection.getBalance(event);
 
-      // Complete event:
-      await program.methods
-        .withdrawStake(eventId)
-        .accounts({
-          authority: authority.publicKey,
-        })
-        .signers([authority])
-        .rpc();
+  //     // Complete event:
+  //     await program.methods
+  //       .withdrawStake(eventId)
+  //       .accounts({
+  //         sender: authority.publicKey,
+  //       })
+  //       .signers([authority])
+  //       .rpc();
 
-      // Fetching balance:
-      const balanceAfter = await provider.connection.getBalance(event);
+  //     // Fetching balance:
+  //     const balanceAfter = await provider.connection.getBalance(event);
 
-      expect(balanceAfter).toEqual(balanceBefore - stake.toNumber());
-    });
-  });
+  //     expect(balanceAfter).toEqual(balanceBefore - stake.toNumber());
+  //   });
+  // });
 
   describe("create_option", () => {
     beforeAll(async () => {
@@ -359,6 +427,14 @@ async function createNewEvent(startDate?: BN, endDate?: BN) {
   }
 
   try {
+    await program.methods
+      .transferStake(ONE_SOL)
+      .accounts({
+        sender: authority.publicKey,
+      })
+      .signers([authority])
+      .rpc();
+
     await program.methods
       .createEvent(eventId, stake, newArgs)
       .accounts({

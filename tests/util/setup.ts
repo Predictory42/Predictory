@@ -7,6 +7,7 @@ export const TEST_PROGRAM_ID = new PublicKey(
 );
 
 export const ONE_SOL = new BN(1_000_000_000);
+export const INITIAL_TRUST_LVL = new BN(5);
 
 export async function airdrop(
   connection: web3.Connection,

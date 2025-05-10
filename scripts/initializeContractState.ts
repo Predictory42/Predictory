@@ -11,7 +11,8 @@ import { errorHandler, logVar, successHandler } from "./util";
 import { Predictory } from "../target/types/predictory";
 
 import { ONE_SOL } from "../tests/util/setup";
-import { findProgramDataAddress } from "../tests/util/entity";
+import { PublicKey } from "@solana/web3.js";
+import { findProgramDataAddress, findUserAddress } from "../tests/util/entity";
 
 dotenv.config();
 

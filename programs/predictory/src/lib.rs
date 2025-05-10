@@ -145,4 +145,8 @@ pub mod predictory {
     pub fn appeal(ctx: Context<AppealResult>, event_id: u128) -> Result<()> {
         ctx.accounts.appeal(event_id)
     }
+
+    pub fn burn_trust(ctx: Context<BurnTrust>, event_id: u128, trust_amount: u64) -> Result<()> {
+        ctx.accounts.burn_trust(event_id, trust_amount)
+    }
 }
