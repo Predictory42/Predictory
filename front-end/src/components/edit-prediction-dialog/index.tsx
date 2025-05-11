@@ -89,7 +89,6 @@ export const EditPredictionDialog = ({
   const updateEventParticipationDeadline =
     useUpdateEventParticipationDeadline();
 
-  // Name form
   const nameForm = useForm<z.infer<typeof nameFormSchema>>({
     resolver: zodResolver(nameFormSchema),
     defaultValues: {
@@ -97,7 +96,6 @@ export const EditPredictionDialog = ({
     },
   });
 
-  // Description form
   const descriptionForm = useForm<z.infer<typeof descriptionFormSchema>>({
     resolver: zodResolver(descriptionFormSchema),
     defaultValues: {
@@ -107,7 +105,6 @@ export const EditPredictionDialog = ({
     },
   });
 
-  // End date form
   const endDateForm = useForm<z.infer<typeof endDateFormSchema>>({
     resolver: zodResolver(endDateFormSchema),
     defaultValues: {
@@ -115,7 +112,6 @@ export const EditPredictionDialog = ({
     },
   });
 
-  // Participation deadline form
   const participationDeadlineForm = useForm<
     z.infer<typeof participationDeadlineFormSchema>
   >({
@@ -127,7 +123,6 @@ export const EditPredictionDialog = ({
     },
   });
 
-  // Options form
   const optionsForm = useForm<z.infer<typeof optionsFormSchema>>({
     resolver: zodResolver(optionsFormSchema),
     defaultValues: {
@@ -293,7 +288,6 @@ export const EditPredictionDialog = ({
             </Form>
           </TabsContent>
 
-          {/* Description Form */}
           <TabsContent value="description">
             <Form {...descriptionForm}>
               <form className="space-y-4">
@@ -319,7 +313,6 @@ export const EditPredictionDialog = ({
             </Form>
           </TabsContent>
 
-          {/* End Date Form */}
           <TabsContent value="endDate">
             <Form {...endDateForm}>
               <form className="space-y-4">
@@ -332,7 +325,6 @@ export const EditPredictionDialog = ({
             </Form>
           </TabsContent>
 
-          {/* Participation Deadline Form */}
           <TabsContent value="participationDeadline">
             <Form {...participationDeadlineForm}>
               <form className="space-y-4">
@@ -345,7 +337,6 @@ export const EditPredictionDialog = ({
             </Form>
           </TabsContent>
 
-          {/* Options Form */}
           <TabsContent value="options">
             <Form {...optionsForm}>
               <form className="space-y-4">
