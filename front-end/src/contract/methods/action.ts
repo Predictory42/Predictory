@@ -360,18 +360,12 @@ export class ActionMethods {
   /**
    * Withdraw Stake
    * @param {PublicKey} sender
-   * @param {string} eventId
    * @returns {Promise<Transaction>}
    */
-  async withdrawStake(
-    sender: PublicKey,
-    eventId: string,
-  ): Promise<Transaction> {
+  async withdrawStake(sender: PublicKey): Promise<Transaction> {
     try {
-      const eventIdBN = new BN(eventId);
-
       const instruction = await this.program.methods
-        .withdrawStake(eventIdBN)
+        .withdrawStake()
         .accounts({
           sender,
         })
@@ -535,7 +529,7 @@ export class ActionMethods {
     try {
       const eventIdBN = new BN(eventId);
       const instruction = await this.program.methods
-        .racharge(eventIdBN)
+        .recharge(eventIdBN)
         .accounts({ sender })
         .instruction();
 

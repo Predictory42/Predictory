@@ -44,7 +44,12 @@ export function PredictionOptions({
   const hasUserParticipated = userVoteIndex >= 0;
 
   const handleOptionSelect = (option: PredictionOption) => {
-    if (isOwnerSelecting && onOptionSelect) {
+    if (
+      isOwnerSelecting &&
+      onOptionSelect &&
+      //TODO: remove this option after presentation
+      currentStatus === PredictionStatus.ENDED
+    ) {
       onOptionSelect(option);
     } else if (onOptionSelect) {
       setSelectedOptionForStake(option);
