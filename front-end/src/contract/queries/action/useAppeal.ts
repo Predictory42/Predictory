@@ -2,8 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePredictoryService } from "@/providers/PredictoryService";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { sleep } from "@/utils";
 
-const useEventParticipationDeadline = () => {
+const useAppeal = () => {
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
@@ -12,30 +13,30 @@ const useEventParticipationDeadline = () => {
   return useMutation({
     mutationFn: async ({
       eventId,
-      participationDeadline,
+      optionIndex,
     }: {
       eventId: string;
-      participationDeadline: number;
+      optionIndex: number;
     }) => {
       if (!publicKey) throw new Error("PublicKey not found");
       if (!predictoryService) throw new Error("Predictory service not found");
 
       const authority = publicKey;
-      const transaction =
-        await predictoryService.action.updateEventParticipationDeadline(
-          authority,
-          eventId,
-          participationDeadline,
-        );
+      const contractAdminKey = await predictoryService.view.state();
+      const transaction = await predictoryService.action.appeal(
+        authority,
+        eventId,
+        optionIndex,
+        contractAdminKey.authority,
+      );
       const tx = await sendTransaction(transaction, connection);
       return tx;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["allEvents"] });
-      //TODO: or invalidate event
-      // queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+    onSuccess: async () => {
+      await sleep(1000);
+      queryClient.invalidateQueries({ queryKey: ["appellations"] });
     },
   });
 };
 
-export default useEventParticipationDeadline;
+export default useAppeal;

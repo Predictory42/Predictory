@@ -75,3 +75,26 @@ export enum PredictoryError {
 
 export type AllEvents = Event &
   Partial<EventMeta> & { options: Partial<EventOption>[] };
+
+export interface Participation {
+  version: number;
+  eventId: BN;
+  payer: PublicKey;
+  option: number;
+  depositedAmount: BN;
+  isClaimed: boolean;
+}
+
+export interface User {
+  version: number;
+  payer: PublicKey;
+  stake: BN;
+  lockedStake: BN;
+  trustLvl: BN;
+  name: number[];
+}
+
+export interface Appeal {
+  version: number;
+  eventId: BN;
+}

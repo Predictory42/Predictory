@@ -3,6 +3,7 @@ import { usePredictoryService } from "@/providers/PredictoryService";
 import type { CreateEventArgs } from "@/types/predictory";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { BN } from "@coral-xyz/anchor";
 
 const useCreateEvent = () => {
   const { publicKey, sendTransaction } = useWallet();
@@ -18,7 +19,7 @@ const useCreateEvent = () => {
       args,
     }: {
       eventId: string;
-      stake: number;
+      stake: BN;
       args: CreateEventArgs;
     }) => {
       if (!publicKey) throw new Error("PublicKey not found");
@@ -26,8 +27,8 @@ const useCreateEvent = () => {
 
       const authority = publicKey;
       const transaction = await predictoryService.action.createEvent(
-        eventId,
         authority,
+        eventId,
         stake,
         args,
       );

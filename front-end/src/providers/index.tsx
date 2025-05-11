@@ -8,6 +8,7 @@ import queryClient from "@/config/queryClient";
 
 import { PredictoryServiceProvider } from "./PredictoryService";
 import { SolanaProvider } from "./SolanaProvider";
+import { FetchUserComponent } from "@/components/FetchUserComponent";
 
 export const Providers: FC = () => {
   return (
@@ -17,6 +18,7 @@ export const Providers: FC = () => {
           <PredictoryServiceProvider>
             <Layout>
               <Pages />
+              <FetchUserComponent />
             </Layout>
           </PredictoryServiceProvider>
         </SolanaProvider>

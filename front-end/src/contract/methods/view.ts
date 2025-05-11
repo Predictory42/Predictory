@@ -1,26 +1,32 @@
 import { PublicKey } from "@solana/web3.js";
 import type {
   AllEvents,
+  Appeal,
   Event,
   EventMeta,
   EventOption,
+  Participation,
+  User,
 } from "@/types/predictory";
 import { Program } from "@coral-xyz/anchor";
 import { type Predictory } from "../idl/predictory";
 import BN from "bn.js";
+import { Entity } from "../utils/entity";
 
 export class ViewMethods {
-  constructor(private program: Program<Predictory>) {}
+  private entity: Entity;
+  constructor(private program: Program<Predictory>) {
+    this.entity = new Entity(program.programId);
+  }
 
   /**
    * Fetch States Data
    */
   async state() {
     try {
-      const state = await this.program.account.state.fetch(
-        this.program.programId,
-      );
-      return state;
+      const [state] = this.entity.findContractStateAddress();
+      const stateAccount = await this.program.account.state.fetch(state);
+      return stateAccount;
     } catch (error) {
       console.error("VIEW STATE error \n\n", error);
       throw error;
@@ -160,31 +166,33 @@ export class ViewMethods {
     }
   }
 
-  async appeal(appealId: BN) {
+  async appellation(appellationId: BN): Promise<Appeal> {
     try {
-      const publicKey = new PublicKey(appealId.toString());
-      const appeal = await this.program.account.appeal.fetch(publicKey);
-      return appeal;
+      const publicKey = new PublicKey(appellationId.toString());
+      const appellations =
+        await this.program.account.appellation.fetch(publicKey);
+      return appellations;
     } catch (error) {
-      console.error("VIEW APPEAL error \n\n", error);
+      console.error("VIEW APPELLATION error \n\n", error);
       throw error;
     }
   }
 
-  async appeals() {
+  async appellations(): Promise<Appeal[]> {
     try {
-      const appeals = await this.program.account.appeal.all();
-      return appeals.map((appeal) => appeal.account);
+      const appellations = await this.program.account.appellation.all();
+      return appellations.map((appellation) => appellation.account);
     } catch (error) {
-      console.error("VIEW APPEALS error \n\n", error);
+      console.error("VIEW APPELLATIONS error \n\n", error);
       throw error;
     }
   }
 
-  async user(userId: string) {
+  async user(userId: string): Promise<User> {
     try {
       const publicKey = new PublicKey(userId);
-      const user = await this.program.account.user.fetch(publicKey);
+      const [userAccountPublicKey] = this.entity.findUserAddress(publicKey);
+      const user = await this.program.account.user.fetch(userAccountPublicKey);
       return user;
     } catch (error) {
       console.error("VIEW USER error \n\n", error);
@@ -192,7 +200,7 @@ export class ViewMethods {
     }
   }
 
-  async users() {
+  async users(): Promise<User[]> {
     try {
       const users = await this.program.account.user.all();
       return users.map((user) => user.account);
@@ -202,11 +210,19 @@ export class ViewMethods {
     }
   }
 
-  async participant(participantId: string) {
+  async participant(
+    participantId: string,
+    eventId: BN,
+  ): Promise<Participation> {
     try {
       const publicKey = new PublicKey(participantId);
-      const participant =
-        await this.program.account.participation.fetch(publicKey);
+      const [participantAccountPublicKey] = this.entity.findParticipantAddress(
+        eventId,
+        publicKey,
+      );
+      const participant = await this.program.account.participation.fetch(
+        participantAccountPublicKey,
+      );
       return participant;
     } catch (error) {
       console.error("VIEW PARTICIPANT error \n\n", error);
@@ -214,7 +230,7 @@ export class ViewMethods {
     }
   }
 
-  async participants() {
+  async participants(): Promise<Participation[]> {
     try {
       const participants = await this.program.account.participation.all();
       return participants.map((participation) => participation.account);

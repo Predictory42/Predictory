@@ -1,21 +1,22 @@
 import { Card, CardTitle } from "@/shadcn/ui/card";
-import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
-import { bufferToString } from "@/contract/utils";
+import { bnToUuid, bufferToString } from "@/contract/utils";
 import { useState } from "react";
 import { Separator } from "@/shadcn/ui/separator";
 import type { AllEvents } from "@/types/predictory";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { getPredictionStatus, PredictionStatus } from "@/utils/status";
+import { getPredictionStatus } from "@/utils/status";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ExternalLink } from "lucide-react";
 import { APP_ROUTES } from "@/routes/constants";
 import { Link } from "react-router";
 import { PredictionOptions } from "@/components/prediction/PredictionOptions";
-import type { PredictionOption } from "@/components/prediction/PredictionOptions";
+import type { PredictionOption } from "@/components/prediction/OptionCard";
 import { PredictionCreatorInfo } from "@/components/prediction/PredictionCreatorInfo";
 import { PredictionTimeline } from "@/components/prediction/PredictionTimeline";
 import useVote from "@/contract/queries/action/useVote";
+import { useWallet } from "@solana/wallet-adapter-react";
+import useParticipants from "@/contract/queries/view/all/useParticipants";
 
 type PredictionCardProps = {
   prediction: Pick<
@@ -31,36 +32,41 @@ type PredictionCardProps = {
     | "result"
     | "id"
   >;
-  userVoteIndex?: number;
 };
 
-export function PredictionCard({
-  prediction,
-  userVoteIndex = -1,
-}: PredictionCardProps) {
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+export function PredictionCard({ prediction }: PredictionCardProps) {
+  const { publicKey } = useWallet();
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  const { data: participants } = useParticipants();
+  const participant = participants?.find(
+    (participant) =>
+      participant.eventId.toString() === prediction?.id.toString() &&
+      participant.payer.toBase58() === publicKey?.toBase58(),
+  );
 
   const { mutateAsync: vote, isPending: isVoting } = useVote();
 
-  const participate = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleOptionSelect = (option: PredictionOption) => {
+    setSelectedOption(option.index);
+  };
+
+  const handleParticipate = async (optionIndex: number, amount: number) => {
     await vote({
       eventId: prediction.id.toString(),
-      userVoteIndex: parseInt(selectedOption ?? "0"),
-      amount: 0.01,
+      userVoteIndex: optionIndex,
+      amount: amount * LAMPORTS_PER_SOL,
     });
     setSelectedOption(null);
   };
 
-  const parsedOptions: PredictionOption[] = prediction.options.map(
-    (option) => ({
-      title: option.description ? bufferToString(option.description) : "-",
-      votes: option.votes?.toNumber() ?? 0,
-      value: option.vaultBalance
-        ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
-        : 0,
-    }),
-  );
+  const parsedOptions = prediction.options.map((option) => ({
+    title: option.description ? bufferToString(option.description) : "-",
+    votes: option.votes?.toNumber() ?? 0,
+    value: option.vaultBalance
+      ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
+      : 0,
+  }));
 
   const currentStatus = getPredictionStatus({
     startDate: prediction.startDate,
@@ -69,9 +75,8 @@ export function PredictionCard({
     canceled: prediction.canceled,
   });
 
-  const isActive = currentStatus === PredictionStatus.ACTIVE;
-
   const resultIndex = prediction.result != null ? prediction.result : -1;
+  const isOwner = prediction.authority.toBase58() === publicKey?.toBase58();
 
   return (
     <Card
@@ -86,7 +91,7 @@ export function PredictionCard({
         <div className="flex items-center gap-2">
           <StatusBadge status={currentStatus} />
           <Link
-            to={APP_ROUTES.PREDICTORY_ID(prediction.id.toString())}
+            to={APP_ROUTES.PREDICTORY_ID(bnToUuid(prediction.id))}
             className="p-1 text-muted-foreground hover:text-primary transition-colors"
           >
             <ExternalLink size={16} />
@@ -127,35 +132,15 @@ export function PredictionCard({
           currentStatus={currentStatus}
           totalStake={prediction.stake ? prediction.stake.toNumber() : 0}
           resultIndex={resultIndex}
-          userVoteIndex={userVoteIndex}
+          userVoteIndex={participant?.option}
           selectedOption={selectedOption}
-          onOptionSelect={isActive ? setSelectedOption : undefined}
+          onOptionSelect={handleOptionSelect}
+          onStakeSubmit={handleParticipate}
+          isSubmitting={isVoting}
+          isOwner={isOwner}
+          isScrollable={true}
         />
       </div>
-
-      {isActive && (
-        <div className="pt-2 px-4 flex flex-col gap-2">
-          {selectedOption && (
-            <p className="text-xs text-center text-primary">
-              You selected: {parsedOptions[parseInt(selectedOption)]?.title}
-            </p>
-          )}
-          <Button
-            variant="default"
-            size="lg"
-            disabled={!selectedOption || isVoting}
-            loading={isVoting}
-            onClick={participate}
-            className={cn(
-              "w-full text-foreground bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all",
-              "shadow-md hover:shadow-lg transform hover:-translate-y-0.5",
-              !selectedOption && "pointer-events-none",
-            )}
-          >
-            Participate Now
-          </Button>
-        </div>
-      )}
     </Card>
   );
 }

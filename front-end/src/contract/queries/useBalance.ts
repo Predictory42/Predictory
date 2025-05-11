@@ -8,7 +8,7 @@ const useBalance = () => {
   const { publicKey } = useWallet();
 
   return useQuery({
-    queryKey: ["balance", publicKey],
+    queryKey: ["balance", publicKey?.toBase58()],
     queryFn: async () => {
       if (!publicKey) return;
       const bal = await connection.getBalance(publicKey);

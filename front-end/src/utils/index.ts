@@ -24,12 +24,15 @@ export const personImage = (address: string): string => {
   return persons[index];
 };
 
-export function formatTimeFromDate(date: Date): string {
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const seconds = date.getSeconds();
-
-  return `${hours}h ${minutes}m ${seconds}s`;
+export function formatDateTimeCompact(date: Date): string {
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 /**
@@ -37,5 +40,9 @@ export function formatTimeFromDate(date: Date): string {
  * @returns {BN} The current time in seconds
  */
 export const getCurrentTime = (): BN => {
-  return new BN(Math.round(new Date().getTime()) / 1000);
+  return new BN(Math.round(new Date().getTime()));
+};
+
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };

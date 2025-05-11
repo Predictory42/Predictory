@@ -1,5 +1,5 @@
 {
-  "address": "6jLLqwQ4svVrTEfgqJHuMpEtCVkLyPFFEMDiwwiaE5iA",
+  "address": "8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se",
   "metadata": {
     "name": "predictory",
     "version": "0.1.0",
@@ -26,7 +26,28 @@
           "signer": true
         },
         {
-          "name": "appeal",
+          "name": "contract_admin",
+          "writable": true
+        },
+        {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "appellation",
           "writable": true,
           "pda": {
             "seeds": [
@@ -50,7 +71,6 @@
         },
         {
           "name": "event",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -71,7 +91,30 @@
           }
         },
         {
-          "name": "participant",
+          "name": "option"
+        },
+        {
+          "name": "user",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "participation",
           "pda": {
             "seeds": [
               {
@@ -114,6 +157,130 @@
       ]
     },
     {
+      "name": "burn_trust",
+      "discriminator": [
+        170,
+        125,
+        109,
+        46,
+        43,
+        115,
+        252,
+        158
+      ],
+      "accounts": [
+        {
+          "name": "sender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "event_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "participation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  105,
+                  99,
+                  105,
+                  112,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "event_id"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "event_id",
+          "type": "u128"
+        },
+        {
+          "name": "trust_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "cancel_event",
       "discriminator": [
         55,
@@ -130,6 +297,49 @@
           "name": "sender",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "contract_admin",
+          "writable": true
+        },
+        {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "event.authority",
+                "account": "Event"
+              }
+            ]
+          }
         },
         {
           "name": "event",
@@ -178,6 +388,70 @@
           "name": "sender",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "contract_admin",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_admin",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "event.authority",
+                "account": "Event"
+              }
+            ]
+          }
+        },
+        {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "event",
@@ -269,6 +543,23 @@
           "signer": true
         },
         {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "event",
           "writable": true,
           "pda": {
@@ -319,6 +610,44 @@
           "name": "authority",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "event",
@@ -382,10 +711,6 @@
         {
           "name": "event_id",
           "type": "u128"
-        },
-        {
-          "name": "stake",
-          "type": "u64"
         },
         {
           "name": "args",
@@ -560,7 +885,7 @@
         },
         {
           "name": "program_account",
-          "address": "6jLLqwQ4svVrTEfgqJHuMpEtCVkLyPFFEMDiwwiaE5iA"
+          "address": "8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se"
         },
         {
           "name": "program_data"
@@ -581,6 +906,14 @@
         },
         {
           "name": "event_price",
+          "type": "u64"
+        },
+        {
+          "name": "platform_fee",
+          "type": "u64"
+        },
+        {
+          "name": "org_reward",
           "type": "u64"
         }
       ]
@@ -621,6 +954,27 @@
               {
                 "kind": "arg",
                 "path": "event_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -1263,6 +1617,27 @@
           "signer": true
         },
         {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
           "name": "event",
           "pda": {
             "seeds": [
@@ -1355,31 +1730,34 @@
       ],
       "accounts": [
         {
-          "name": "authority",
+          "name": "sender",
           "writable": true,
           "signer": true
         },
         {
-          "name": "event",
+          "name": "user",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
+                  117,
+                  115,
                   101,
-                  118,
-                  101,
-                  110,
-                  116
+                  114
                 ]
               },
               {
-                "kind": "arg",
-                "path": "event_id"
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -1392,16 +1770,16 @@
   ],
   "accounts": [
     {
-      "name": "Appeal",
+      "name": "Appellation",
       "discriminator": [
-        155,
-        196,
-        80,
-        143,
-        64,
-        220,
-        198,
-        177
+        10,
+        14,
+        128,
+        59,
+        61,
+        171,
+        204,
+        61
       ]
     },
     {
@@ -1516,68 +1894,98 @@
     },
     {
       "code": 6006,
+      "name": "LowEventVolume",
+      "msg": "Low event volume"
+    },
+    {
+      "code": 6007,
       "name": "InvalidUUID",
       "msg": "Invalid UUID version"
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "InvalidEndDate",
       "msg": "Invalid sale end date"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "InvalidIndex",
       "msg": "Invalid index - must be sequential"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "TooManyOptions",
       "msg": "Event has too many options"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InactiveEvent",
       "msg": "Event is inactive"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "ActiveEvent",
       "msg": "Event is still active"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "EarlyStakeWithdraw",
       "msg": "Stake can be withdrawn only after the event is over and appellation time has passed"
     },
     {
-      "code": 6013,
+      "code": 6014,
+      "name": "EarlyClaim",
+      "msg": "Reward can be withdrawn only after the event is over and completion time + appellation time has passed"
+    },
+    {
+      "code": 6015,
+      "name": "AppellationDeadlinePassed",
+      "msg": "Appellation deadline passed"
+    },
+    {
+      "code": 6016,
       "name": "ParticipationDeadlinePassed",
       "msg": "Participation deadline passed"
     },
     {
-      "code": 6014,
+      "code": 6017,
       "name": "CanceledEvent",
       "msg": "Event is canceled"
     },
     {
-      "code": 6015,
+      "code": 6018,
+      "name": "AlreadyClaimed",
+      "msg": "Already claimed"
+    },
+    {
+      "code": 6019,
+      "name": "AlreadyAppealed",
+      "msg": "Already appealed"
+    },
+    {
+      "code": 6020,
       "name": "LosingOption",
       "msg": "This option has lost"
     },
     {
-      "code": 6016,
+      "code": 6021,
       "name": "EventIsNotCancelled",
       "msg": "Event is not cancelled"
     },
     {
-      "code": 6017,
+      "code": 6022,
       "name": "AllStakeLocked",
       "msg": "All user stake is locked"
+    },
+    {
+      "code": 6023,
+      "name": "StakeTooLow",
+      "msg": "Low stake to create event"
     }
   ],
   "types": [
     {
-      "name": "Appeal",
+      "name": "Appellation",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1594,6 +2002,27 @@
               "Event UUID"
             ],
             "type": "u128"
+          },
+          {
+            "name": "disagree_count",
+            "docs": [
+              "Participant appellation count"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "disagree_trust_lvl",
+            "docs": [
+              "Participant appellation count"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "disagree_volume",
+            "docs": [
+              "Participant deposit volume"
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -1704,6 +2133,27 @@
               "Event option count"
             ],
             "type": "u8"
+          },
+          {
+            "name": "participation_count",
+            "docs": [
+              "Event participation count"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_amount",
+            "docs": [
+              "Total amount of tokens in all pools"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_trust",
+            "docs": [
+              "Total amount of tokens in all pools"
+            ],
+            "type": "u64"
           },
           {
             "name": "canceled",
@@ -1871,6 +2321,13 @@
               "Whether the user has claimed tokens or recharged SOL"
             ],
             "type": "bool"
+          },
+          {
+            "name": "appealed",
+            "docs": [
+              "Whether the user has appealed"
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -1903,6 +2360,20 @@
           },
           {
             "name": "event_price",
+            "docs": [
+              "Event price"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee",
+            "docs": [
+              "Event price"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "org_reward",
             "docs": [
               "Event price"
             ],
@@ -1940,7 +2411,14 @@
           {
             "name": "locked_stake",
             "docs": [
-              "User locked stake sales"
+              "User locked stake (only for view)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "trust_lvl",
+            "docs": [
+              "User trust level"
             ],
             "type": "u64"
           },

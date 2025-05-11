@@ -31,6 +31,8 @@ import { Badge } from "@/shadcn/ui/badge";
 import { cn } from "@/shadcn/utils";
 import { personImage, truncateAddress } from "@/utils";
 import { MagicLoading } from "@/components/MagicLoading";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import type { AllEvents } from "@/types/predictory";
 
 //TODO: Mock creator rating function, implement
 function getCreatorRating(address: string): number {
@@ -59,11 +61,11 @@ export const Profile: FC = () => {
   const createdEvents =
     allEvents?.filter((event) => event.authority.toBase58() === address) || [];
 
-  //TODO: Mock: Find events participated in by this user (in a real app, this would come from user data), implement
-  const participatedEvents = allEvents?.slice(0, 3) || [];
+  //TODO: Mock participated events, implement
+  const participatedEvents: AllEvents[] = [];
 
-  //TODO: Mock trust tokens and statistics, implement
-  const mockTrustTokens = 256;
+  const trustLevel = user?.trustLvl.toNumber() ?? 0;
+  //TODO: Mock statistics, implement
   const mockAppeals = 2;
   const mockSuccessRate = 92;
 
@@ -161,7 +163,7 @@ export const Profile: FC = () => {
                   >
                     <HeartHandshake className="h-3.5 w-3.5 text-primary" />
                     <span className="text-sm font-medium">
-                      {mockTrustTokens} Trust Tokens
+                      {trustLevel} Trust Level
                     </span>
                   </Badge>
                 </div>
@@ -289,15 +291,13 @@ export const Profile: FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Tokens Earned</h3>
-                  <div className="p-3 rounded-md border border-border bg-background/50">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Total SOL</span>
-                      <span className="text-sm font-bold">
-                        {mockRecord.solEarned} SOL
-                      </span>
-                    </div>
+                <div className="p-3 rounded-md border border-border bg-background/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Locked SOL</span>
+                    <span className="text-sm font-bold">
+                      {(user?.lockedStake.toNumber() ?? 0) / LAMPORTS_PER_SOL}{" "}
+                      SOL
+                    </span>
                   </div>
                 </div>
 

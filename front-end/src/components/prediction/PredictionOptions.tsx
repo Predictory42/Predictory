@@ -1,24 +1,24 @@
-import { cn } from "@/shadcn/utils";
-import { CheckCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { useMemo, useState } from "react";
 import { PredictionStatus } from "@/utils/status";
-
-export type PredictionOption = {
-  title: string;
-  votes: number;
-  value: string | number;
-};
+import { StakeModal } from "./StakeModal";
+import { OptionCard, type PredictionOption } from "./OptionCard";
+import { cn } from "@/shadcn/utils";
 
 type PredictionOptionsProps = {
-  options: PredictionOption[];
+  options: Omit<PredictionOption, "index">[];
   currentStatus: PredictionStatus;
   totalStake: number;
   resultIndex?: number;
   userVoteIndex?: number;
-  selectedOption?: string | null;
-  ownerSelectedOption?: string | null;
+  userStake?: number;
+  selectedOption?: number | null;
+  ownerSelectedOption?: number | null;
   isOwnerSelecting?: boolean;
-  onOptionSelect?: (optionIndex: string) => void;
+  isOwner?: boolean;
+  onOptionSelect?: (option: PredictionOption) => void;
+  onStakeSubmit?: (selectedOption: number, amount: number) => void;
+  isSubmitting?: boolean;
+  isScrollable?: boolean;
 };
 
 export function PredictionOptions({
@@ -27,97 +27,84 @@ export function PredictionOptions({
   totalStake,
   resultIndex = -1,
   userVoteIndex = -1,
+  userStake = 0,
   selectedOption = null,
   ownerSelectedOption = null,
   isOwnerSelecting = false,
+  isOwner = false,
   onOptionSelect,
+  onStakeSubmit,
+  isSubmitting = false,
+  isScrollable = false,
 }: PredictionOptionsProps) {
-  const isActive = currentStatus === PredictionStatus.ACTIVE;
-  const isEnded = currentStatus === PredictionStatus.ENDED;
+  const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
+  const [selectedOptionForStake, setSelectedOptionForStake] =
+    useState<PredictionOption | null>(null);
+
+  const hasUserParticipated = userVoteIndex >= 0;
+
+  const handleOptionSelect = (option: PredictionOption) => {
+    if (isOwnerSelecting && onOptionSelect) {
+      onOptionSelect(option);
+    } else if (onOptionSelect) {
+      setSelectedOptionForStake(option);
+      setIsStakeModalOpen(true);
+    }
+  };
+
+  const parsedOptions = useMemo(
+    () =>
+      options
+        .map((option, index) => ({
+          ...option,
+          index,
+        }))
+        .sort((a, b) => a.index - b.index),
+    [options],
+  );
 
   return (
-    <div className="space-y-2">
-      {options.map((option, index) => {
-        const percentage = (
-          (Number(option.value) / Number(totalStake)) *
-          100
-        ).toFixed(0);
-        const isWinner = resultIndex === index;
-        const isUserVote = userVoteIndex === index;
-        const isOptionSelected = selectedOption === index.toString();
-        const isOwnerSelected = ownerSelectedOption === index.toString();
+    <div
+      className={cn(
+        "space-y-2",
+        isScrollable && "overflow-y-auto max-h-[140px] no-scrollbar",
+      )}
+    >
+      {parsedOptions.map((option) => (
+        <OptionCard
+          key={option.index}
+          option={option}
+          currentStatus={currentStatus}
+          totalStake={totalStake}
+          isWinner={resultIndex === option.index}
+          isUserVote={userVoteIndex === option.index}
+          userStake={userStake}
+          isSelected={selectedOption === option.index}
+          isOwnerSelected={ownerSelectedOption === option.index}
+          isOwnerSelecting={isOwnerSelecting}
+          isOwner={isOwner}
+          onSelect={handleOptionSelect}
+          isScrollable={isScrollable}
+          hasUserParticipated={hasUserParticipated}
+        />
+      ))}
 
-        return (
-          <div
-            key={index}
-            className={cn(
-              "relative flex items-center justify-between gap-2 border rounded-md py-2 px-3 border-border overflow-hidden",
-              isWinner
-                ? "border-primary"
-                : isEnded
-                  ? "opacity-50"
-                  : "opacity-100",
-              isActive &&
-                onOptionSelect &&
-                "cursor-pointer hover:border-primary/50 hover:scale-105 transition-all duration-300",
-              isOptionSelected && "scale-105 border-primary/50",
-              isOwnerSelected && "border-amber-500 scale-105",
-            )}
-            onClick={() => {
-              if ((isActive || isOwnerSelecting) && onOptionSelect) {
-                onOptionSelect(index.toString());
-              }
-            }}
-          >
-            <div
-              className={cn(
-                "absolute top-0 left-0 h-full bg-gradient-to-r",
-                isWinner
-                  ? "from-primary/70 to-primary/30"
-                  : isOwnerSelected
-                    ? "from-amber-500/50 to-amber-500/20"
-                    : "from-primary/50 to-secondary/20",
-              )}
-              style={{ width: `${percentage}%` }}
-            />
-
-            <div className="relative z-10 flex flex-col w-full">
-              <div className="flex justify-between w-full items-center">
-                <div className="flex items-center gap-2">
-                  <p
-                    className={cn(
-                      "text-sm font-medium",
-                      isWinner && "font-bold",
-                      isOwnerSelected && "text-amber-500 font-bold",
-                    )}
-                  >
-                    {option.title}
-                  </p>
-                  {isUserVote && (
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <CheckCircle className="h-4 w-4 text-primary" />
-                      </TooltipTrigger>
-                      <TooltipContent>You voted for this option</TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-                <p className="text-sm font-medium">{option.value} SOL</p>
-              </div>
-              <div className="flex justify-between w-full">
-                <p className="text-xs text-muted-foreground">
-                  Votes: {option.votes}
-                </p>
-                <p className="text-xs text-muted-foreground">{percentage}%</p>
-              </div>
-            </div>
-
-            {isActive && isOptionSelected && (
-              <div className="absolute inset-0 border-2 border-primary rounded-md pointer-events-none" />
-            )}
-          </div>
-        );
-      })}
+      {selectedOptionForStake && !hasUserParticipated && (
+        <StakeModal
+          isOpen={isStakeModalOpen}
+          onOpenChange={setIsStakeModalOpen}
+          optionTitle={selectedOptionForStake.title}
+          onSubmit={(amount) => {
+            if (onStakeSubmit) {
+              onStakeSubmit(selectedOptionForStake.index, amount);
+              setIsStakeModalOpen(false);
+              setSelectedOptionForStake(null);
+            }
+          }}
+          isLoading={isSubmitting}
+          isOwner={isOwner}
+        />
+      )}
     </div>
   );
 }

@@ -17,20 +17,29 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { Button } from "@/shadcn/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/shadcn/ui/card";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/shadcn/ui/dialog";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/shadcn/ui/alert";
 import { useQueryClient } from "@tanstack/react-query";
-import { userRegistrationFormSchema } from "./types";
+import { userRegistrationFormSchema } from "../routes/Create/components/types";
+import { sleep } from "@/utils";
 
-export const UserRegistrationForm: FC = () => {
+interface UserRegistrationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const UserRegistrationModal: FC<UserRegistrationModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const queryClient = useQueryClient();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction, disconnect } = useWallet();
   const { connection } = useConnection();
   const { predictoryService } = usePredictoryService();
   const [loading, setLoading] = useState(false);
@@ -42,6 +51,11 @@ export const UserRegistrationForm: FC = () => {
       name: "",
     },
   });
+
+  const handleClose = () => {
+    disconnect();
+    onClose();
+  };
 
   const onSubmit = async (data: z.infer<typeof userRegistrationFormSchema>) => {
     if (!publicKey || !predictoryService) return;
@@ -58,9 +72,11 @@ export const UserRegistrationForm: FC = () => {
       const userCreationTx = await sendTransaction(tx, connection);
       console.info("userCreationTx", userCreationTx);
 
+      await sleep(2000);
       queryClient.invalidateQueries({
         queryKey: ["user", publicKey.toBase58()],
       });
+      onClose();
     } catch (error) {
       console.error("Error creating user:", error);
       setError("Failed to create user. Please try again.");
@@ -70,17 +86,17 @@ export const UserRegistrationForm: FC = () => {
   };
 
   return (
-    <Card className="bg-popover/30 backdrop-blur-sm overflow-hidden">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">
-          Create Your Predictor Profile
-        </CardTitle>
-        <CardDescription>
-          Before creating predictions, you need to set up your profile
-        </CardDescription>
-      </CardHeader>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">
+            Create Your Predictor Profile
+          </DialogTitle>
+          <DialogDescription>
+            Before creating predictions, you need to set up your profile
+          </DialogDescription>
+        </DialogHeader>
 
-      <CardContent>
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
@@ -118,7 +134,7 @@ export const UserRegistrationForm: FC = () => {
             </Button>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };

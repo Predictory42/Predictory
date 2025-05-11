@@ -23,7 +23,9 @@ export function ConnectWalletButton({ className }: { className?: string }) {
           </Link>
         </Button>
       ) : (
-        <Button onClick={handleConnect}>Connect Wallet</Button>
+        <Button variant="secondary" onClick={handleConnect}>
+          Connect Wallet
+        </Button>
       )}
     </div>
   );

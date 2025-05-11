@@ -28,7 +28,7 @@ export function PredictoryServiceProvider({
     useState<PredictoryService | null>(null);
 
   useEffect(() => {
-    if (!connection || !wallet) return;
+    if (!connection) return;
     setPredictoryService(
       new PredictoryService(connection, wallet as unknown as NodeWallet),
     );

@@ -4,38 +4,33 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@/shadcn/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Link, useNavigate } from "react-router";
 import useBalance from "@/contract/queries/useBalance";
 import { usePredictoryService } from "@/providers/PredictoryService";
-import useUser from "@/contract/queries/view/id/useUser";
 import { v4 as uuidv4 } from "uuid";
-import { UserRegistrationForm } from "./components/UserRegistrationForm";
 import { CreatePredictionForm } from "./components/CreatePredictionForm";
 import type { PredictionFormValues } from "./components/types";
 import { APP_ROUTES } from "../constants";
+import useContractState from "@/contract/queries/view/id/useContractState";
+import { sleep } from "@/utils";
 
 export const Create: FC = () => {
   const navigate = useNavigate();
   const { publicKey, sendTransaction } = useWallet();
   const { data: balance } = useBalance();
-  const { data: user } = useUser(publicKey?.toBase58() || "");
+  const { data: contractState } = useContractState();
   const { predictoryService } = usePredictoryService();
   const { connection } = useConnection();
 
   const [loading, setLoading] = useState(false);
 
   const handleCreatePrediction = async (data: PredictionFormValues) => {
-    if (!publicKey || !predictoryService) return;
+    if (!publicKey || !predictoryService || !contractState) return;
 
     setLoading(true);
     try {
       const eventId = uuidv4();
       console.info("eventId", eventId);
-
-      //TODO: add stake from state contract useStateContract
-      const stake = 0.1 * LAMPORTS_PER_SOL;
-
       const args = {
         name: data.name,
         description: data.description,
@@ -50,9 +45,19 @@ export const Create: FC = () => {
       const createEventTx = await predictoryService.action.createEvent(
         publicKey,
         eventId,
-        stake,
+        contractState.eventPrice,
         args,
       );
+
+      const simulations = await connection.simulateTransaction(createEventTx);
+      console.log(simulations);
+      const createEventTxHash = await sendTransaction(
+        createEventTx,
+        connection,
+      );
+      console.info("create event transaction hash", createEventTxHash);
+
+      await sleep(2000);
 
       const optionsForContract = data.options.map((option, index) => ({
         optionCount: index,
@@ -65,11 +70,13 @@ export const Create: FC = () => {
         optionsForContract,
       );
 
-      const createEventTxHash = await sendTransaction(
-        createEventTx.add(createOptionsTx),
+      const createOptionsTxHash = await sendTransaction(
+        createOptionsTx,
         connection,
       );
-      console.info("create event transaction hash", createEventTxHash);
+      console.info("create options transaction hash", createOptionsTxHash);
+
+      await sleep(2000);
 
       navigate(APP_ROUTES.PREDICTORY_ID(eventId));
     } catch (error) {
@@ -96,14 +103,6 @@ export const Create: FC = () => {
           </div>
         </div>
 
-        {!user && <UserRegistrationForm />}
-        <div className="relative">
-          {!user && (
-            <div className="absolute top-0 left-0 rounded-xl inset-0 bg-black/50 z-10 flex items-center justify-center custom-blur">
-              To continue, create a user.
-            </div>
-          )}
-        </div>
         <CreatePredictionForm
           onSubmit={handleCreatePrediction}
           isLoading={loading}

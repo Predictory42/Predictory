@@ -1,9 +1,4 @@
-import {
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 import type {
   CreateEventArgs,
   InstructionCreateEventArgs,
@@ -12,23 +7,26 @@ import { Program } from "@coral-xyz/anchor";
 import { type Predictory } from "../idl/predictory";
 import BN from "bn.js";
 import { bufferFromString, uuidToBn } from "../utils";
-import { Buffer } from "buffer";
+import { Entity } from "../utils/entity";
 
 export class ActionMethods {
-  constructor(private program: Program<Predictory>) {}
+  private entity: Entity;
+  constructor(private program: Program<Predictory>) {
+    this.entity = new Entity(program.programId);
+  }
 
   /**
    * Create Event
    * @param {PublicKey} authority
    * @param {string} eventId
-   * @param {number} stake
+   * @param {BN} eventPrice
    * @param {CreateEventArgs} args
    * @returns {Promise<Transaction>}
    */
   async createEvent(
     authority: PublicKey,
     eventId: string,
-    stake: number,
+    eventPrice: BN,
     args: CreateEventArgs,
   ): Promise<Transaction> {
     try {
@@ -38,31 +36,30 @@ export class ActionMethods {
         isPrivate: args.isPrivate,
         name: Array.from(bufferFromString(args.name, 32)),
         description: Array.from(bufferFromString(args.description, 256)),
-        startDate: new BN(args.startDate),
-        endDate: new BN(args.endDate),
+        startDate: new BN(args.startDate / 1000),
+        endDate: new BN(args.endDate / 1000),
         participationDeadline: args.participationDeadline
-          ? new BN(args.participationDeadline)
+          ? new BN(args.participationDeadline / 1000)
           : null,
       };
 
-      const stakeBN = new BN(stake).mul(new BN(LAMPORTS_PER_SOL));
-
       const instruction = await this.program.methods
-        .createEvent(eventIdBN, stakeBN, instructionArgs)
+        .createEvent(eventIdBN, instructionArgs)
         .accounts({
           authority,
         })
         .instruction();
 
-      const transferInstruction = SystemProgram.transfer({
-        fromPubkey: authority,
-        toPubkey: this.program.programId,
-        lamports: stake * LAMPORTS_PER_SOL,
-      });
+      const transferInstruction = await this.program.methods
+        .transferStake(new BN(eventPrice))
+        .accounts({
+          sender: authority,
+        })
+        .instruction();
 
       return new Transaction({
         feePayer: authority,
-      }).add(instruction, transferInstruction);
+      }).add(transferInstruction, instruction);
     } catch (error) {
       console.error("CREATE EVENT error \n\n", error);
       throw error;
@@ -89,14 +86,10 @@ export class ActionMethods {
 
       const instructions = await Promise.all(
         options.map(async ({ optionCount, description }) => {
-          const option = PublicKey.findProgramAddressSync(
-            [
-              Buffer.from("option"),
-              Buffer.from(eventId.toString()),
-              Buffer.from([optionCount]),
-            ],
-            this.program.programId,
-          )[0];
+          const [option] = this.entity.findEventOptionAddress(
+            eventIdBN,
+            optionCount,
+          );
 
           const instructionDescription = Array.from(
             bufferFromString(description, 256),
@@ -136,7 +129,7 @@ export class ActionMethods {
     optionIndex: number,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
 
       const instruction = await this.program.methods
         .completeEvent(eventIdBN, optionIndex)
@@ -166,7 +159,7 @@ export class ActionMethods {
     description: string,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
 
       const instructionDescription = Array.from(
         bufferFromString(description, 256),
@@ -201,7 +194,7 @@ export class ActionMethods {
     endDate: number,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
       const endDateBN = new BN(endDate);
       const instruction = await this.program.methods
         .updateEventEndDate(eventIdBN, endDateBN)
@@ -232,7 +225,7 @@ export class ActionMethods {
     name: string,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
       const instructionName = Array.from(bufferFromString(name, 32));
 
       const instruction = await this.program.methods
@@ -267,7 +260,7 @@ export class ActionMethods {
     }[],
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
 
       const instructions = await Promise.all(
         options.map(async ({ optionIndex, description }) => {
@@ -275,14 +268,10 @@ export class ActionMethods {
             bufferFromString(description, 256),
           );
 
-          const option = PublicKey.findProgramAddressSync(
-            [
-              Buffer.from("option"),
-              Buffer.from(eventId.toString()),
-              Buffer.from([optionIndex]),
-            ],
-            this.program.programId,
-          )[0];
+          const [option] = this.entity.findEventOptionAddress(
+            eventIdBN,
+            optionIndex,
+          );
 
           const instruction = await this.program.methods
             .updateEventOption(eventIdBN, optionIndex, instructionDescription)
@@ -318,7 +307,7 @@ export class ActionMethods {
     participationDeadline: number,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
       const participationDeadlineBN = new BN(participationDeadline);
 
       const instruction = await this.program.methods
@@ -343,14 +332,19 @@ export class ActionMethods {
    * @param {string} eventId
    * @returns {Promise<Transaction>}
    */
-  async cancelEvent(sender: PublicKey, eventId: string): Promise<Transaction> {
+  async cancelEvent(
+    sender: PublicKey,
+    eventId: string,
+    contractAdmin: PublicKey,
+  ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
 
       const instruction = await this.program.methods
         .cancelEvent(eventIdBN)
         .accounts({
           sender,
+          contractAdmin,
         })
         .instruction();
 
@@ -365,26 +359,26 @@ export class ActionMethods {
 
   /**
    * Withdraw Stake
-   * @param {PublicKey} authority
+   * @param {PublicKey} sender
    * @param {string} eventId
    * @returns {Promise<Transaction>}
    */
   async withdrawStake(
-    authority: PublicKey,
+    sender: PublicKey,
     eventId: string,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
 
       const instruction = await this.program.methods
         .withdrawStake(eventIdBN)
         .accounts({
-          authority,
+          sender,
         })
         .instruction();
 
       return new Transaction({
-        feePayer: authority,
+        feePayer: sender,
       }).add(instruction);
     } catch (error) {
       console.error("WITHDRAW STAKE error \n\n", error);
@@ -407,16 +401,19 @@ export class ActionMethods {
     amount: number,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
       const amountBN = new BN(amount);
-      const option = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("option"),
-          Buffer.from(eventId.toString()),
-          Buffer.from([optionIndex]),
-        ],
-        this.program.programId,
+      const option = this.entity.findEventOptionAddress(
+        eventIdBN,
+        optionIndex,
       )[0];
+
+      const transferInstruction = await this.program.methods
+        .transferStake(amountBN)
+        .accounts({
+          sender,
+        })
+        .instruction();
 
       const instruction = await this.program.methods
         .vote(eventIdBN, optionIndex, amountBN)
@@ -428,7 +425,7 @@ export class ActionMethods {
 
       return new Transaction({
         feePayer: sender,
-      }).add(instruction);
+      }).add(transferInstruction, instruction);
     } catch (error) {
       console.error("VOTE error \n\n", error);
       throw error;
@@ -439,15 +436,26 @@ export class ActionMethods {
    * Appeal
    * @param {PublicKey} sender
    * @param {string} eventId
+   * @param {number} optionIndex
+   * @param {PublicKey} contractAdmin
    * @returns {Promise<Transaction>}
    */
-  async appeal(sender: PublicKey, eventId: string): Promise<Transaction> {
+  async appeal(
+    sender: PublicKey,
+    eventId: string,
+    optionIndex: number,
+    contractAdmin: PublicKey,
+  ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
+      const [option] = this.entity.findEventOptionAddress(
+        eventIdBN,
+        optionIndex,
+      );
 
       const instruction = await this.program.methods
         .appeal(eventIdBN)
-        .accounts({ sender })
+        .accounts({ sender, contractAdmin, option })
         .instruction();
 
       return new Transaction({
@@ -464,28 +472,26 @@ export class ActionMethods {
    * @param {PublicKey} sender
    * @param {string} eventId
    * @param {number} optionIndex
+   * @param {PublicKey} contractAdmin
    * @returns {Promise<Transaction>}
    */
   async claimEventReward(
     sender: PublicKey,
     eventId: string,
     optionIndex: number,
+    contractAdmin: PublicKey,
   ): Promise<Transaction> {
     try {
-      const eventIdBN = uuidToBn(eventId);
+      const eventIdBN = new BN(eventId);
 
-      const option = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("option"),
-          Buffer.from(eventId.toString()),
-          Buffer.from([optionIndex]),
-        ],
-        this.program.programId,
-      )[0];
+      const [option] = this.entity.findEventOptionAddress(
+        eventIdBN,
+        optionIndex,
+      );
 
       const instruction = await this.program.methods
         .claimEventReward(eventIdBN)
-        .accounts({ sender, option })
+        .accounts({ sender, option, contractAdmin })
         .instruction();
 
       return new Transaction({
@@ -515,6 +521,29 @@ export class ActionMethods {
       }).add(instruction);
     } catch (error) {
       console.error("CREATE USER error \n\n", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Recharge
+   * @param {PublicKey} sender
+   * @param {string} eventId
+   * @returns {Promise<Transaction>}
+   */
+  async recharge(sender: PublicKey, eventId: string): Promise<Transaction> {
+    try {
+      const eventIdBN = new BN(eventId);
+      const instruction = await this.program.methods
+        .racharge(eventIdBN)
+        .accounts({ sender })
+        .instruction();
+
+      return new Transaction({
+        feePayer: sender,
+      }).add(instruction);
+    } catch (error) {
+      console.error("RECHARGE error \n\n", error);
       throw error;
     }
   }

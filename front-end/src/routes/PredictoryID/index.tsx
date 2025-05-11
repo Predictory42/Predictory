@@ -1,32 +1,25 @@
 import { type FC, useState } from "react";
 import { Link, useParams } from "react-router";
 import { Button } from "@/shadcn/ui/button";
-import {
-  ArrowLeft,
-  Edit,
-  CheckCircle,
-  XCircle,
-  Award,
-  BadgeAlert,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
+import { ArrowLeft, Edit, AlertCircle, Clock } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import useAllEvents from "@/contract/queries/view/all/useAllEvents";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getPredictionStatus, PredictionStatus } from "@/utils/status";
 import { Separator } from "@/shadcn/ui/separator";
-import { bufferToString } from "@/contract/utils";
+import { bnToUuid, bufferToString } from "@/contract/utils";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { EditPredictionDialog } from "@/components/edit-prediction-dialog";
 import { Badge } from "@/shadcn/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { MagicLoading } from "@/components/MagicLoading";
 import { PredictionOptions } from "@/components/prediction/PredictionOptions";
-import type { PredictionOption } from "@/components/prediction/PredictionOptions";
+import type { PredictionOption } from "@/components/prediction/OptionCard";
 import { PredictionCreatorInfo } from "@/components/prediction/PredictionCreatorInfo";
 import { PredictionTimeline } from "@/components/prediction/PredictionTimeline";
 import { PredictionMetadata } from "@/components/prediction/PredictionMetadata";
+import { PredictionActions } from "@/components/prediction/PredictionActions";
+import useVote from "@/contract/queries/action/useVote";
 
 import {
   Card,
@@ -37,18 +30,85 @@ import {
   CardDescription,
 } from "@/shadcn/ui/card";
 
+import useParticipants from "@/contract/queries/view/all/useParticipants";
+
 export const PredictoryID: FC = () => {
   const { publicKey } = useWallet();
   const { id } = useParams();
-
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [ownerSelectedResult, setOwnerSelectedResult] = useState<string | null>(
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [ownerSelectedOption, setOwnerSelectedOption] = useState<number | null>(
     null,
   );
 
+  const { mutateAsync: vote, isPending: isVoting } = useVote();
+
   const { data: events, isLoading } = useAllEvents();
-  const prediction = events?.find((event) => event.id.toString() === id);
+  const prediction = events?.find((event) => bnToUuid(event.id) === id);
+
+  const { data: participants } = useParticipants();
+  const participant = participants?.find(
+    (participant) =>
+      participant.eventId.toString() === prediction?.id.toString() &&
+      participant.payer.toBase58() === publicKey?.toBase58(),
+  );
+
+  const currentStatus = prediction
+    ? getPredictionStatus({
+        startDate: prediction.startDate,
+        endDate: prediction.endDate,
+        participationDeadline: prediction.participationDeadline,
+        canceled: prediction.canceled,
+      })
+    : PredictionStatus.NOT_STARTED;
+
+  const parsedOptions = prediction
+    ? prediction.options.map((option, index) => ({
+        title: option.description ? bufferToString(option.description) : "-",
+        votes: option.votes?.toNumber() ?? 0,
+        value: option.vaultBalance
+          ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
+          : 0,
+        index,
+      }))
+    : [];
+
+  const resultIndex = prediction?.result != null ? prediction.result : -1;
+  const isUserOwner = Boolean(
+    publicKey?.toBase58() === prediction?.authority.toBase58(),
+  );
+  const predictionName = prediction?.name
+    ? bufferToString(prediction.name)
+    : "Untitled";
+  const isActive = currentStatus === PredictionStatus.ACTIVE;
+  const isEnded = currentStatus === PredictionStatus.ENDED;
+  const isCanceled = currentStatus === PredictionStatus.CANCELED;
+
+  const userVoteIndex = participant?.option ?? -1;
+  const hasUserParticipated = userVoteIndex >= 0;
+  const isClaimed = Boolean(hasUserParticipated && participant?.isClaimed);
+  const didUserWin = Boolean(
+    hasUserParticipated && resultIndex === userVoteIndex,
+  );
+
+  const handleOptionSelect = (option: PredictionOption) => {
+    if (isUserOwner && isEnded && resultIndex === -1) {
+      setOwnerSelectedOption(option.index);
+    } else if (isActive) {
+      setSelectedOption(option.index);
+    }
+  };
+
+  const handleParticipate = async (optionIndex: number, amount: number) => {
+    if (!prediction) return;
+
+    await vote({
+      eventId: prediction.id.toString(),
+      userVoteIndex: optionIndex,
+      amount: amount * LAMPORTS_PER_SOL,
+    });
+    setSelectedOption(null);
+  };
 
   if (isLoading) return <MagicLoading />;
 
@@ -68,37 +128,6 @@ export const PredictoryID: FC = () => {
     );
   }
 
-  const currentStatus = getPredictionStatus({
-    startDate: prediction.startDate,
-    endDate: prediction.endDate,
-    participationDeadline: prediction.participationDeadline,
-    canceled: prediction.canceled,
-  });
-
-  const parsedOptions: PredictionOption[] = prediction.options.map(
-    (option) => ({
-      title: option.description ? bufferToString(option.description) : "-",
-      votes: option.votes?.toNumber() ?? 0,
-      value: option.vaultBalance
-        ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
-        : 0,
-    }),
-  );
-
-  const resultIndex = prediction.result != null ? prediction.result : -1;
-  const isUserOwner = publicKey?.toBase58() === prediction.authority.toBase58();
-  const predictionName = prediction.name
-    ? bufferToString(prediction.name)
-    : "Untitled";
-  const isActive = currentStatus === PredictionStatus.ACTIVE;
-  const isEnded = currentStatus === PredictionStatus.ENDED;
-  const isCanceled = currentStatus === PredictionStatus.CANCELED;
-
-  // TODO: Mock user vote index, implement
-  const mockUserVoteIndex = 1;
-  const hasUserParticipated = mockUserVoteIndex >= 0;
-  const didUserWin = hasUserParticipated && resultIndex === mockUserVoteIndex;
-
   // Calculate time left for owner to select result (24 hours after event ends)
   const timeLeftToSelectResult =
     isEnded && resultIndex === -1 && isUserOwner
@@ -109,45 +138,9 @@ export const PredictoryID: FC = () => {
     (timeLeftToSelectResult % (1000 * 60 * 60)) / (1000 * 60),
   );
 
-  //TODO implement method
-  const handleCancelEvent = () => {
-    console.log("Canceling event");
-  };
-
-  //TODO implement method
-  const handleCancelResult = () => {
-    console.log("Canceling result");
-  };
-
-  //TODO implement method
-  const handleParticipate = () => {
-    if (selectedOption && isActive) {
-      console.log(`Voting for option: ${selectedOption}`);
-      setSelectedOption(null);
-    }
-  };
-
-  //TODO implement method
-  const handleClaimReward = () => {
-    console.log("Claiming reward");
-  };
-
-  //TODO implement method
-  const handleContestResult = () => {
-    console.log("Contesting result");
-  };
-
-  //TODO implement method
-  const handleClaimRefund = () => {
-    console.log("Claiming refund");
-  };
-
-  //TODO implement method
-  const handleSubmitResult = () => {
-    if (ownerSelectedResult) {
-      console.log(`Setting result to: ${ownerSelectedResult}`);
-    }
-  };
+  // Calculate the selectedOptionIndex for the PredictionActions component
+  const selectedOptionIndex =
+    ownerSelectedOption !== null ? ownerSelectedOption : undefined;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -159,27 +152,18 @@ export const PredictoryID: FC = () => {
           </Link>
         </Button>
 
-        {isUserOwner && currentStatus === PredictionStatus.NOT_STARTED && (
-          <Button
-            variant="outline"
-            className="flex items-center gap-2"
-            onClick={() => setIsEditDialogOpen(true)}
-          >
-            <Edit className="w-4 h-4" />
-            Edit Prediction
-          </Button>
-        )}
-
-        {isUserOwner && !isCanceled && (
-          <Button
-            variant="destructive"
-            className="flex items-center gap-2"
-            onClick={handleCancelEvent}
-          >
-            <XCircle className="w-4 h-4" />
-            Cancel Event
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isUserOwner && currentStatus === PredictionStatus.NOT_STARTED && (
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={() => setIsEditDialogOpen(true)}
+            >
+              <Edit className="w-4 h-4" />
+              <span className="hidden md:block">Edit Prediction</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       {isUserOwner && resultIndex === -1 && (
@@ -251,11 +235,6 @@ export const PredictoryID: FC = () => {
                           : undefined
                       }
                       showCancelOption={resultIndex >= 0 && isUserOwner}
-                      onCancelResult={
-                        resultIndex >= 0 && isUserOwner
-                          ? handleCancelResult
-                          : undefined
-                      }
                     />
                   </div>
                 </div>
@@ -323,92 +302,44 @@ export const PredictoryID: FC = () => {
                 currentStatus={currentStatus}
                 totalStake={prediction.stake ? prediction.stake.toNumber() : 0}
                 resultIndex={resultIndex}
-                userVoteIndex={mockUserVoteIndex}
+                userVoteIndex={userVoteIndex}
+                userStake={
+                  participant?.depositedAmount
+                    ? participant.depositedAmount.toNumber()
+                    : 0
+                }
                 selectedOption={selectedOption}
-                ownerSelectedOption={ownerSelectedResult}
-                isOwnerSelecting={isUserOwner && isEnded && resultIndex === -1}
-                onOptionSelect={(optionIndex) => {
-                  if (isActive) {
-                    setSelectedOption(optionIndex);
-                  } else if (isUserOwner && isEnded && resultIndex === -1) {
-                    setOwnerSelectedResult(optionIndex);
-                  }
-                }}
+                ownerSelectedOption={ownerSelectedOption}
+                isOwnerSelecting={Boolean(
+                  isUserOwner && isEnded && resultIndex === -1,
+                )}
+                isOwner={isUserOwner}
+                onOptionSelect={handleOptionSelect}
+                onStakeSubmit={handleParticipate}
+                isSubmitting={isVoting}
               />
 
-              {isActive && selectedOption && (
+              {isActive && selectedOption !== null && (
                 <p className="text-xs text-center text-primary mt-4">
-                  You selected: {parsedOptions[parseInt(selectedOption)]?.title}
+                  You selected: {parsedOptions[selectedOption]?.title}
                 </p>
               )}
             </CardContent>
 
-            {!isActive && isUserOwner && isEnded && resultIndex === -1 && (
-              <CardFooter>
-                <div className="w-full space-y-2">
-                  <p className="text-xs text-center text-muted-foreground">
-                    {ownerSelectedResult
-                      ? `Selected: ${parsedOptions[parseInt(ownerSelectedResult)]?.title}`
-                      : "Select the winning option above"}
-                  </p>
-                  <Button
-                    variant="default"
-                    disabled={!ownerSelectedResult}
-                    className="w-full"
-                    onClick={handleSubmitResult}
-                  >
-                    Submit Result
-                  </Button>
-                </div>
-              </CardFooter>
-            )}
-
-            {hasUserParticipated && resultIndex !== -1 && !isUserOwner && (
-              <CardFooter className="flex flex-col gap-3">
-                {didUserWin && (
-                  <Button
-                    onClick={handleClaimReward}
-                    className="w-full gap-2"
-                    variant="default"
-                  >
-                    <Award className="h-4 w-4" />
-                    Claim Reward
-                  </Button>
-                )}
-
-                <Button
-                  onClick={handleContestResult}
-                  className="w-full gap-2"
-                  variant="destructive"
-                >
-                  <BadgeAlert className="h-4 w-4" />
-                  Contest Result
-                </Button>
-              </CardFooter>
-            )}
-
-            {isCanceled && hasUserParticipated && !isUserOwner && (
-              <CardFooter className="flex justify-center">
-                <Button onClick={handleClaimRefund} className="gap-2 w-full">
-                  <CheckCircle className="h-4 w-4" />
-                  Claim Refund
-                </Button>
-              </CardFooter>
-            )}
-
-            {isActive && (
-              <CardFooter>
-                <Button
-                  onClick={handleParticipate}
-                  disabled={!selectedOption}
-                  className="gap-2 w-full"
-                  variant="secondary"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  Participate
-                </Button>
-              </CardFooter>
-            )}
+            <CardFooter>
+              <PredictionActions
+                predictionId={prediction.id}
+                selectedOptionIndex={selectedOptionIndex}
+                isEnded={isEnded}
+                isCanceled={isCanceled}
+                isUserOwner={isUserOwner}
+                hasUserParticipated={hasUserParticipated}
+                resultIndex={resultIndex}
+                didUserWin={didUserWin}
+                isClaimed={isClaimed}
+                ownerSelectedResult={ownerSelectedOption !== null}
+              />
+            </CardFooter>
           </Card>
         </div>
       </div>

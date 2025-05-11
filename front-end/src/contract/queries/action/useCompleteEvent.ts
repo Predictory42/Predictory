@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePredictoryService } from "@/providers/PredictoryService";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { sleep } from "@/utils";
 
 const useCompleteEvent = () => {
   const { publicKey, sendTransaction } = useWallet();
@@ -29,7 +30,8 @@ const useCompleteEvent = () => {
       const tx = await sendTransaction(transaction, connection);
       return tx;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await sleep(1000);
       queryClient.invalidateQueries({ queryKey: ["allEvents"] });
       //TODO: or invalidate event
       // queryClient.invalidateQueries({ queryKey: ["event", eventId] });

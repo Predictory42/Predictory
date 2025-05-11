@@ -4,7 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { sleep } from "@/utils";
 
-const useCancelEvent = () => {
+const useRecharge = () => {
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
@@ -15,12 +15,9 @@ const useCancelEvent = () => {
       if (!publicKey) throw new Error("PublicKey not found");
       if (!predictoryService) throw new Error("Predictory service not found");
 
-      const authority = publicKey;
-      const contractAdminKey = await predictoryService.view.state();
-      const transaction = await predictoryService.action.cancelEvent(
-        authority,
+      const transaction = await predictoryService.action.recharge(
+        publicKey,
         eventId,
-        contractAdminKey.authority,
       );
       const tx = await sendTransaction(transaction, connection);
       return tx;
@@ -28,10 +25,13 @@ const useCancelEvent = () => {
     onSuccess: async () => {
       await sleep(1000);
       queryClient.invalidateQueries({ queryKey: ["allEvents"] });
+      queryClient.invalidateQueries({
+        queryKey: ["balance", publicKey?.toBase58()],
+      });
       //TODO: or invalidate event
       // queryClient.invalidateQueries({ queryKey: ["event", eventId] });
     },
   });
 };
 
-export default useCancelEvent;
+export default useRecharge;

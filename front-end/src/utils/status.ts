@@ -1,6 +1,7 @@
 import type { Event } from "@/types/predictory";
 
 import { getCurrentTime } from "./index";
+import BN from "bn.js";
 
 export enum PredictionStatus {
   NOT_STARTED = "NOT_STARTED",
@@ -20,23 +21,29 @@ export function getPredictionStatus(
 
   const { startDate, endDate, participationDeadline, canceled } = prediction;
 
+  const startDateInMs = startDate.mul(new BN(1000));
+  const endDateInMs = endDate.mul(new BN(1000));
+  const participationDeadlineInMs = participationDeadline
+    ? participationDeadline.mul(new BN(1000))
+    : undefined;
+
   if (canceled) {
     return PredictionStatus.CANCELED;
   }
 
-  if (currentTime.lt(startDate)) {
+  if (currentTime.lt(startDateInMs)) {
     return PredictionStatus.NOT_STARTED;
   }
 
   if (
-    participationDeadline &&
-    currentTime.gt(participationDeadline) &&
-    currentTime.lt(endDate)
+    participationDeadlineInMs &&
+    currentTime.gt(participationDeadlineInMs) &&
+    currentTime.lt(endDateInMs)
   ) {
     return PredictionStatus.PARTICIPATION_CLOSED;
   }
 
-  if (currentTime.gte(endDate)) {
+  if (currentTime.gte(endDateInMs)) {
     return PredictionStatus.ENDED;
   }
 

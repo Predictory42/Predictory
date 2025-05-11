@@ -3,50 +3,52 @@
 @plugin "tailwindcss-animate";
 
 :root {
-  --background: #0e1018;
-  --foreground: #f8f9fa;
+  --background: #0b0c12;
+  --foreground: #f4f5f7;
 
-  --card: #161622;
+  --card: #14141f;
   --card-foreground: #ffffff;
 
-  --popover: #222437;
+  --popover: #1e1f2d;
   --popover-foreground: #ffffff;
 
-  --primary: #b892f9;
-  --primary-foreground: #0e1018;
+  --primary: #a788ff;
+  --primary-foreground: #0b0c12;
 
-  --secondary: #36364e;
-  --secondary-foreground: #f8f9fa;
+  --secondary: #404059;
+  --secondary-foreground: #f4f5f7;
 
-  --muted: #2e3041;
-  --muted-foreground: #999db3;
+  --muted: #2a2b3b;
+  --muted-foreground: #a3a6ba;
 
-  --accent: #825eff;
+  --accent: #7c5fe9;
   --accent-foreground: #ffffff;
 
-  --destructive: #e06b6b;
+  --destructive: #d96c6c;
 
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: #7352cc;
+  --border: rgba(255, 255, 255, 0.06);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #6e5abf;
 
-  --chart-1: #7d6bff;
-  --chart-2: #68e3c1;
-  --chart-3: #ffd56b;
-  --chart-4: #da74f7;
-  --chart-5: #ff9a5c;
+  --chart-1: #7262e9;
+  --chart-2: #5cd9b3;
+  --chart-3: #fcd76a;
+  --chart-4: #ce6cf4;
+  --chart-5: #ff9552;
 
-  --sidebar: #1a1c2b;
-  --sidebar-foreground: #f8f9fa;
-  --sidebar-primary: #8e72d5;
+  --sidebar: #161621;
+  --sidebar-foreground: #f4f5f7;
+  --sidebar-primary: #9a7cff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #2c2d44;
+  --sidebar-accent: #26263a;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #4b4571;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #534b85;
 
   --radius: 0.625rem;
 }
+
+
 
 
 @theme inline {
@@ -98,6 +100,17 @@
 
   body {
     @apply text-foreground bg-background;
+  }
+}
+
+@layer components {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: 0;
   }
 }
 
