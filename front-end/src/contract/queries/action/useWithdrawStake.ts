@@ -10,15 +10,13 @@ const useWithdrawStake = () => {
   const { predictoryService } = usePredictoryService();
 
   return useMutation({
-    mutationFn: async ({ eventId }: { eventId: string }) => {
+    mutationFn: async () => {
       if (!publicKey) throw new Error("PublicKey not found");
       if (!predictoryService) throw new Error("Predictory service not found");
 
       const authority = publicKey;
-      const transaction = await predictoryService.action.withdrawStake(
-        authority,
-        eventId,
-      );
+      const transaction =
+        await predictoryService.action.withdrawStake(authority);
       const tx = await sendTransaction(transaction, connection);
       return tx;
     },

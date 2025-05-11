@@ -12,7 +12,7 @@ import { CreatePredictionForm } from "./components/CreatePredictionForm";
 import type { PredictionFormValues } from "./components/types";
 import { APP_ROUTES } from "../constants";
 import useContractState from "@/contract/queries/view/id/useContractState";
-import { sleep } from "@/utils";
+import { chunkArray, sleep } from "@/utils";
 
 export const Create: FC = () => {
   const navigate = useNavigate();
@@ -64,18 +64,22 @@ export const Create: FC = () => {
         description: option.description,
       }));
 
-      const createOptionsTx = await predictoryService.action.createEventOption(
-        publicKey,
-        eventId,
-        optionsForContract,
-      );
+      const optionChunks = chunkArray(optionsForContract, 3);
 
-      const createOptionsTxHash = await sendTransaction(
-        createOptionsTx,
-        connection,
-      );
-      console.info("create options transaction hash", createOptionsTxHash);
+      for (const optionChunk of optionChunks) {
+        const createOptionsTx =
+          await predictoryService.action.createEventOption(
+            publicKey,
+            eventId,
+            optionChunk,
+          );
 
+        const createOptionsTxHash = await sendTransaction(
+          createOptionsTx,
+          connection,
+        );
+        console.info("create options transaction hash", createOptionsTxHash);
+      }
       await sleep(2000);
 
       navigate(APP_ROUTES.PREDICTORY_ID(eventId));

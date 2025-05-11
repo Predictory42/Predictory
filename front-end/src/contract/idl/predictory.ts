@@ -135,8 +135,10 @@ export type Predictory = {
                   105,
                   112,
                   97,
-                  110,
-                  116
+                  116,
+                  105,
+                  111,
+                  110
                 ]
               },
               {
@@ -255,8 +257,10 @@ export type Predictory = {
                   105,
                   112,
                   97,
-                  110,
-                  116
+                  116,
+                  105,
+                  111,
+                  110
                 ]
               },
               {
@@ -925,16 +929,16 @@ export type Predictory = {
       ]
     },
     {
-      "name": "racharge",
+      "name": "recharge",
       "discriminator": [
-        17,
-        74,
-        72,
-        125,
-        168,
-        131,
-        163,
-        221
+        24,
+        185,
+        26,
+        126,
+        177,
+        122,
+        171,
+        66
       ],
       "accounts": [
         {
@@ -1002,8 +1006,10 @@ export type Predictory = {
                   105,
                   112,
                   97,
-                  110,
-                  116
+                  116,
+                  105,
+                  111,
+                  110
                 ]
               },
               {
@@ -1645,6 +1651,7 @@ export type Predictory = {
         },
         {
           "name": "event",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1766,12 +1773,7 @@ export type Predictory = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "eventId",
-          "type": "u128"
-        }
-      ]
+      "args": []
     }
   ],
   "accounts": [
@@ -1935,56 +1937,61 @@ export type Predictory = {
     },
     {
       "code": 6013,
+      "name": "creatorParticipation",
+      "msg": "Event creator cannot be a participant"
+    },
+    {
+      "code": 6014,
       "name": "earlyStakeWithdraw",
       "msg": "Stake can be withdrawn only after the event is over and appellation time has passed"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "earlyClaim",
       "msg": "Reward can be withdrawn only after the event is over and completion time + appellation time has passed"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "appellationDeadlinePassed",
       "msg": "Appellation deadline passed"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "participationDeadlinePassed",
       "msg": "Participation deadline passed"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "canceledEvent",
       "msg": "Event is canceled"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "alreadyClaimed",
       "msg": "Already claimed"
     },
     {
-      "code": 6019,
+      "code": 6020,
       "name": "alreadyAppealed",
       "msg": "Already appealed"
     },
     {
-      "code": 6020,
+      "code": 6021,
       "name": "losingOption",
       "msg": "This option has lost"
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "eventIsNotCancelled",
       "msg": "Event is not cancelled"
     },
     {
-      "code": 6022,
+      "code": 6023,
       "name": "allStakeLocked",
       "msg": "All user stake is locked"
     },
     {
-      "code": 6023,
+      "code": 6024,
       "name": "stakeTooLow",
       "msg": "Low stake to create event"
     }
