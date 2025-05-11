@@ -28,6 +28,8 @@ pub enum ProgramError {
     InactiveEvent,
     #[msg("Event is still active")]
     ActiveEvent,
+    #[msg("Event creator cannot be a participant")]
+    CreatorParticipation,
     #[msg("Stake can be withdrawn only after the event is over and appellation time has passed")]
     EarlyStakeWithdraw,
     #[msg("Reward can be withdrawn only after the event is over and completion time + appellation time has passed")]

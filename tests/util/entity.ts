@@ -57,7 +57,7 @@ export function findParticipantAddress(
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [
-      bufferFromString("participant"),
+      bufferFromString("participation"),
       eventId.toBuffer("le", 16),
       sender.toBytes(),
     ],

@@ -18,7 +18,7 @@ predictory = "8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

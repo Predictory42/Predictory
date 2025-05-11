@@ -92,20 +92,18 @@ impl<'info> TransferStake<'info> {
 }
 
 impl<'info> WithdrawStake<'info> {
-    pub fn withdraw(&mut self, event_id: u128) -> Result<()> {
-        let user = &self.user;
+    pub fn withdraw(&mut self) -> Result<()> {
+        let user = &mut self.user;
 
         withdraw_sol(
-            &self.user.to_account_info(),
+            &user.to_account_info(),
             &self.sender.to_account_info(),
             user.stake,
         )?;
 
-        msg!(
-            "User stake withdrawn - {}: {}",
-            self.user.payer,
-            uuid::Uuid::from_u128(event_id)
-        );
+        user.stake = 0;
+
+        msg!("User stake withdrawn - {}", self.user.payer,);
 
         Ok(())
     }

@@ -29,7 +29,9 @@ pub struct Vote<'info> {
     pub user: Account<'info, User>,
 
     #[account(
+        mut,
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
+        constraint = event.authority != sender.key() @ ProgramError::CreatorParticipation,
         bump,
     )]
     pub event: Account<'info, Event>,
@@ -122,7 +124,6 @@ pub struct Recharge<'info> {
     #[account(
         mut,
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
-        constraint = event.end_date < Clock::get()?.unix_timestamp @ ProgramError::ActiveEvent,
         bump,
     )]
     pub event: Account<'info, Event>,
@@ -136,8 +137,7 @@ pub struct Recharge<'info> {
 
     #[account(
         mut,
-        seeds = [b"participant".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
-        constraint = participant.payer == sender.key() @ ProgramError::AuthorityMismatch,
+        seeds = [b"participation".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
         bump,
     )]
     pub participant: Account<'info, Participation>,
@@ -194,7 +194,7 @@ pub struct AppealResult<'info> {
     pub user: Account<'info, User>,
 
     #[account(
-        seeds = [b"participant".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
+        seeds = [b"participation".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
         constraint = participation.payer == sender.key() @ ProgramError::AuthorityMismatch,
         bump,
     )]
@@ -232,7 +232,7 @@ pub struct BurnTrust<'info> {
     pub user: Account<'info, User>,
 
     #[account(
-        seeds = [b"participant".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
+        seeds = [b"participation".as_ref(), &event_id.to_le_bytes(), sender.key().as_ref()],
         constraint = participation.payer == sender.key() @ ProgramError::AuthorityMismatch,
         bump,
     )]
@@ -275,6 +275,7 @@ impl<'info> Vote<'info> {
         event.total_amount += amount;
 
         option.vault_balance += amount;
+        option.votes += 1;
 
         user.stake -= amount;
         user.locked_stake += amount;
@@ -299,10 +300,11 @@ impl<'info> Vote<'info> {
 impl<'info> ClaimEventReward<'info> {
     pub fn claim_event_reward(&mut self, event_id: u128) -> Result<()> {
         let user = &mut self.user;
-        let event = &self.event;
+        let event = &mut self.event;
 
         require!(event.result.is_some(), ProgramError::EventIsNotOver);
         require!(!self.participation.is_claimed, ProgramError::AlreadyClaimed);
+        require!(!self.participation.appealed, ProgramError::AlreadyAppealed);
 
         let now = Clock::get()?.unix_timestamp;
 
@@ -316,9 +318,9 @@ impl<'info> ClaimEventReward<'info> {
         // let available_for_winners =
         // event.total_amount * (1 - self.state.platform_fee - self.state.org_reward);
 
-        let org_reward = event.total_amount * self.state.org_reward / 100;
+        let org_reward = (event.total_amount as f64 * self.state.org_reward as f64 / 100.0) as u64;
 
-        let available_for_winners = if (event.total_amount < self.state.platform_fee + org_reward) {
+        let available_for_winners = if event.total_amount < self.state.platform_fee + org_reward {
             event.total_amount
         } else {
             event.total_amount - self.state.platform_fee - org_reward
@@ -326,12 +328,15 @@ impl<'info> ClaimEventReward<'info> {
 
         // Releasing creator stake
         if event.stake != 0 && available_for_winners != event.total_amount {
-            let amount = event.stake + self.state.org_reward;
+            let amount = event.stake + org_reward;
+
+            msg!("REWARD: {} {}", org_reward, event.stake);
+
             self.event_admin.locked_stake -= event.stake;
             self.event_admin.stake += amount;
 
             withdraw_sol(
-                &self.event.to_account_info(),
+                &event.to_account_info(),
                 &self.event_admin.to_account_info(),
                 amount,
             )?;
@@ -341,8 +346,10 @@ impl<'info> ClaimEventReward<'info> {
                 &self.contract_admin.to_account_info(),
                 self.state.platform_fee,
             )?;
+
+            event.stake = 0;
         }
-        if (event.result.unwrap() == self.participation.option) {
+        if event.result.unwrap() == self.participation.option {
             let claim_amount = self.participation.deposited_amount / self.option.vault_balance
                 * available_for_winners;
 
@@ -373,7 +380,7 @@ impl<'info> ClaimEventReward<'info> {
 }
 
 impl<'info> Recharge<'info> {
-    pub fn racharge(&mut self, event_id: u128) -> Result<()> {
+    pub fn recharge(&mut self, event_id: u128) -> Result<()> {
         require!(self.event.canceled, ProgramError::EventIsNotCancelled);
 
         let user = &mut self.user;

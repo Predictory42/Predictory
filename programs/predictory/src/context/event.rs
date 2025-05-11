@@ -112,7 +112,6 @@ pub struct CancelEvent<'info> {
     #[account(
         mut,
         seeds = [b"event".as_ref(), &event_id.to_le_bytes()],
-        constraint = event.start_date > Clock::get()?.unix_timestamp @ ProgramError::EventAlreadyStarted,
         bump,
     )]
     pub event: Account<'info, Event>,
@@ -157,11 +156,7 @@ pub struct CreateEventArgs {
 // ------------------------ Implementation ------------------------- //
 
 impl<'info> CreateEvent<'info> {
-    pub fn create_event(
-        &mut self,
-        event_id: u128,
-        args: CreateEventArgs,
-    ) -> Result<()> {
+    pub fn create_event(&mut self, event_id: u128, args: CreateEventArgs) -> Result<()> {
         let id = uuid::Uuid::from_u128(event_id);
         self.validate(id, &args)?;
 
@@ -302,7 +297,7 @@ impl<'info> CancelEvent<'info> {
 
         // TODO: what happens with his trust coins?
         // TODO: Do i need to add appell on appel?
-        if event.start_date > now {
+        if event.start_date <= now {
             self.user.locked_stake -= event.stake;
             self.user.stake -= event.stake;
 

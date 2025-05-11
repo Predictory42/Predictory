@@ -56,8 +56,8 @@ pub mod predictory {
         ctx.accounts.transfer_stake(stake)
     }
 
-    pub fn withdraw_stake(ctx: Context<WithdrawStake>, event_id: u128) -> Result<()> {
-        ctx.accounts.withdraw(event_id)
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>) -> Result<()> {
+        ctx.accounts.withdraw()
     }
 
     pub fn create_event(
@@ -137,8 +137,8 @@ pub mod predictory {
         ctx.accounts.claim_event_reward(event_id)
     }
 
-    pub fn racharge(ctx: Context<Recharge>, event_id: u128) -> Result<()> {
-        ctx.accounts.racharge(event_id)
+    pub fn recharge(ctx: Context<Recharge>, event_id: u128) -> Result<()> {
+        ctx.accounts.recharge(event_id)
     }
 
     pub fn appeal(ctx: Context<AppealResult>, event_id: u128) -> Result<()> {
