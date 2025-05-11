@@ -19,6 +19,7 @@ import { PredictionCreatorInfo } from "@/components/prediction/PredictionCreator
 import { PredictionTimeline } from "@/components/prediction/PredictionTimeline";
 import { PredictionMetadata } from "@/components/prediction/PredictionMetadata";
 import { PredictionActions } from "@/components/prediction/PredictionActions";
+import { PredictionChart } from "@/components/prediction/PredictionChart";
 import useVote from "@/contract/queries/action/useVote";
 
 import {
@@ -252,16 +253,7 @@ export const PredictoryID: FC = () => {
                 </div>
               </div>
 
-              <div className="mb-6">
-                <h3 className="text-sm font-medium mb-2">
-                  Options Distribution
-                </h3>
-                <div className="h-64 bg-muted/50 rounded-md flex items-center justify-center">
-                  <p className="text-muted-foreground">
-                    Chart will be displayed here
-                  </p>
-                </div>
-              </div>
+              <PredictionChart options={parsedOptions} />
             </CardContent>
           </Card>
         </div>
