@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useMemo, useState, type FC } from "react";
 import { PredictionCard } from "@/components/prediction/PredictionCard";
 import { PaginatedList } from "@/components/PaginatedList";
 
@@ -6,6 +6,15 @@ import useAllEvents from "@/contract/queries/view/all/useAllEvents";
 import { MagicLoading } from "@/components/MagicLoading";
 import { Button } from "@/shadcn/ui/button";
 import { Link } from "react-router";
+import { getPredictionStatus, PredictionStatus } from "@/utils/status";
+
+const SORT_BY: Record<PredictionStatus, number> = {
+  [PredictionStatus.ACTIVE]: 0,
+  [PredictionStatus.NOT_STARTED]: 1,
+  [PredictionStatus.ENDED]: 2,
+  [PredictionStatus.CANCELED]: 3,
+  [PredictionStatus.PARTICIPATION_CLOSED]: 4,
+};
 
 export const Home: FC = () => {
   const [participatedPage, setParticipatedPage] = useState(1);
@@ -13,8 +22,33 @@ export const Home: FC = () => {
 
   const { data: events, isLoading } = useAllEvents();
 
+  const sorterEvents = useMemo(
+    () =>
+      events
+        ?.map((el) => {
+          const currentStatus = getPredictionStatus({
+            startDate: el.startDate,
+            endDate: el.endDate,
+            participationDeadline: el.participationDeadline,
+            canceled: el.canceled,
+          });
+
+          return {
+            ...el,
+            currentStatus,
+          };
+        })
+        .sort((a, b) => {
+          if (a.currentStatus === b.currentStatus) {
+            return a.id.toNumber() - b.id.toNumber();
+          }
+          return SORT_BY[a.currentStatus] - SORT_BY[b.currentStatus];
+        }),
+    [events],
+  );
+
   if (isLoading) return <MagicLoading />;
-  if (!events)
+  if (!sorterEvents?.length)
     return (
       <div className="container mx-auto px-4 py-8 gap-2 flex flex-col items-center justify-center">
         <img
@@ -35,7 +69,7 @@ export const Home: FC = () => {
   return (
     <div>
       <PaginatedList
-        items={events}
+        items={sorterEvents}
         itemsPerPage={itemsPerPage}
         currentPage={participatedPage}
         onPageChange={setParticipatedPage}

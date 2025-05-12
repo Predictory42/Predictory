@@ -1,10 +1,13 @@
 import { Button } from "@/shadcn/ui/button";
-import { Award, BadgeAlert, CheckCircle, XCircle } from "lucide-react";
+import { Award, BadgeAlert, CheckCircle, XCircle, Flame } from "lucide-react";
 import useCancelEvent from "@/contract/queries/action/useCancelEvent";
 import useCompleteEvent from "@/contract/queries/action/useCompleteEvent";
 import useClaimEventReward from "@/contract/queries/action/useClaimEventReward";
 import type { BN } from "@coral-xyz/anchor";
 import useRecharge from "@/contract/queries/action/useRechcarge";
+import useWithdrawStake from "@/contract/queries/action/useWithdrawStake";
+import useAppeal from "@/contract/queries/action/useAppeal";
+import useBurn from "@/contract/queries/action/useBurn";
 
 interface ActionButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -61,6 +64,10 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   const { mutateAsync: claimReward, isPending: isClaiming } =
     useClaimEventReward();
   const { mutateAsync: recharge, isPending: isRecharging } = useRecharge();
+  const { mutateAsync: withdrawStake, isPending: isWithdrawing } =
+    useWithdrawStake();
+  const { mutateAsync: appeal, isPending: isAppealing } = useAppeal();
+  const { mutateAsync: burn, isPending: isBurning } = useBurn();
 
   const handleClaimReward = async () => {
     await claimReward({
@@ -70,8 +77,10 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   };
 
   const handleContestResult = async () => {
-    // TODO: Implement contest result logic
-    console.log("Contesting result");
+    await appeal({
+      eventId: predictionId.toString(),
+      optionIndex: resultIndex,
+    });
   };
 
   const handleClaimRefund = async () => {
@@ -91,6 +100,14 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
     });
   };
 
+  const handleWithdrawStake = async () => {
+    await withdrawStake();
+  };
+
+  const handleBurn = async () => {
+    await burn({ eventId: predictionId.toString() });
+  };
+
   if (isUserOwner && isEnded && resultIndex === -1) {
     return (
       <ActionButton
@@ -106,16 +123,21 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   if (hasUserParticipated && resultIndex !== -1 && !isUserOwner) {
     return (
       <div className="flex flex-col gap-3">
-        {didUserWin && !isClaimed && (
+        {didUserWin && !isClaimed ? (
           <ActionButton onClick={handleClaimReward} isLoading={isClaiming}>
             <Award className="h-4 w-4" />
             Claim Reward
+          </ActionButton>
+        ) : (
+          <ActionButton onClick={handleBurn} isLoading={isBurning}>
+            <Flame className="h-4 w-4" />
+            Burn Trust
           </ActionButton>
         )}
 
         <ActionButton
           onClick={handleContestResult}
-          isLoading={false}
+          isLoading={isAppealing}
           variant="destructive"
         >
           <BadgeAlert className="h-4 w-4" />
@@ -143,6 +165,19 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
       >
         <XCircle className="h-4 w-4" />
         Cancel Event
+      </ActionButton>
+    );
+  }
+
+  if (isUserOwner && isEnded && resultIndex !== -1) {
+    return (
+      <ActionButton
+        onClick={handleWithdrawStake}
+        isLoading={isWithdrawing}
+        variant="destructive"
+      >
+        <XCircle className="h-4 w-4" />
+        Withdraw Stake
       </ActionButton>
     );
   }

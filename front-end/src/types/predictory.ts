@@ -32,6 +32,7 @@ export interface EventOption {
   description: number[];
   votes: BN;
   vaultBalance: BN;
+  index: number;
 }
 
 export interface CreateEventArgs {

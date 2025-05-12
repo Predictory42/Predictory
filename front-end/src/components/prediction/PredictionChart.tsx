@@ -22,7 +22,7 @@ export type OptionData = {
   title: string;
   votes: number;
   value: number | string;
-  index: number;
+  index: number | undefined;
 };
 
 interface PredictionChartProps {

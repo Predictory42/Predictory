@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/predictory.json`.
  */
 export type Predictory = {
-  "address": "8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se",
+  "address": "EV4SZ8mid5j4AVTBsi9tE4faCVHuu2XEPk857KWvrnL4",
   "metadata": {
     "name": "predictory",
     "version": "0.1.0",
@@ -895,7 +895,7 @@ export type Predictory = {
         },
         {
           "name": "programAccount",
-          "address": "8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se"
+          "address": "EV4SZ8mid5j4AVTBsi9tE4faCVHuu2XEPk857KWvrnL4"
         },
         {
           "name": "programData"
@@ -927,6 +927,52 @@ export type Predictory = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "mintTrustForSerhiy",
+      "discriminator": [
+        154,
+        176,
+        240,
+        33,
+        158,
+        39,
+        157,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "sender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "recharge",
@@ -1994,6 +2040,11 @@ export type Predictory = {
       "code": 6024,
       "name": "stakeTooLow",
       "msg": "Low stake to create event"
+    },
+    {
+      "code": 6025,
+      "name": "notEnoughTrust",
+      "msg": "Not enough trust to burn"
     }
   ],
   "types": [
@@ -2249,6 +2300,13 @@ export type Predictory = {
             "name": "version",
             "docs": [
               "Account version"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "index",
+            "docs": [
+              "Option index"
             ],
             "type": "u8"
           },
