@@ -29,7 +29,7 @@ export function StakeModal({
   optionTitle,
   onSubmit,
   isLoading,
-  isOwner = false,
+  // isOwner = false,
 }: StakeModalProps) {
   const [amount, setAmount] = useState("");
   const { connected } = useWallet();

@@ -37,8 +37,8 @@ export function OptionCard({
   userStake = 0,
   isSelected = false,
   isOwnerSelected = false,
-  isOwnerSelecting = false,
-  isOwner = false,
+  // isOwnerSelecting = false,
+  // isOwner = false,
   onSelect,
   isScrollable = false,
 }: OptionCardProps) {
