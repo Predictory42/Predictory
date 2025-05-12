@@ -5,7 +5,7 @@ import { OptionCard, type PredictionOption } from "./OptionCard";
 import { cn } from "@/shadcn/utils";
 
 type PredictionOptionsProps = {
-  options: Omit<PredictionOption, "index">[];
+  options: PredictionOption[];
   currentStatus: PredictionStatus;
   totalStake: number;
   resultIndex?: number;
@@ -40,7 +40,7 @@ export function PredictionOptions({
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
   const [selectedOptionForStake, setSelectedOptionForStake] =
     useState<PredictionOption | null>(null);
-
+  console.log("selectedOptionForStake", selectedOptionForStake);
   const hasUserParticipated = userVoteIndex >= 0;
 
   const handleOptionSelect = (option: PredictionOption) => {
@@ -58,12 +58,7 @@ export function PredictionOptions({
   };
 
   const parsedOptions = useMemo(
-    () =>
-      options.map((option, index) => ({
-        ...option,
-        //TODO: remove this, when contract is updated
-        index,
-      })),
+    () => options.sort((a, b) => (a.index ?? 0) - (b.index ?? 0)),
     [options],
   );
 
@@ -99,7 +94,7 @@ export function PredictionOptions({
           onOpenChange={setIsStakeModalOpen}
           optionTitle={selectedOptionForStake.title}
           onSubmit={(amount) => {
-            if (onStakeSubmit) {
+            if (onStakeSubmit && selectedOptionForStake?.index !== undefined) {
               onStakeSubmit(selectedOptionForStake.index, amount);
               setIsStakeModalOpen(false);
               setSelectedOptionForStake(null);
