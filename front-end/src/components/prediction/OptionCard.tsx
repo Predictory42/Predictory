@@ -37,8 +37,8 @@ export function OptionCard({
   userStake = 0,
   isSelected = false,
   isOwnerSelected = false,
-  // isOwnerSelecting = false,
-  // isOwner = false,
+  isOwnerSelecting = false,
+  isOwner = false,
   onSelect,
   isScrollable = false,
 }: OptionCardProps) {
@@ -52,8 +52,7 @@ export function OptionCard({
   ).toFixed(0);
 
   const handleClick = () => {
-    // if ((isActive && onSelect && !isOwner) || (isOwnerSelecting && onSelect)) {
-    if (isActive && onSelect) {
+    if ((isActive && onSelect && !isOwner) || (isOwnerSelecting && onSelect)) {
       onSelect(option);
     }
   };

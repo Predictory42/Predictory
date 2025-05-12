@@ -70,17 +70,17 @@ export const PredictionChart: React.FC<PredictionChartProps> = ({
   }));
 
   const COLORS = [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
   ];
 
   const chartConfig = {
     votes: {
       label: "Votes",
-      color: "hsl(var(--chart-1))",
+      color: "var(--chart-1)",
     },
   } satisfies ChartConfig;
 
@@ -111,7 +111,7 @@ export const PredictionChart: React.FC<PredictionChartProps> = ({
               <XAxis dataKey="name" />
               <YAxis />
               <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-              <Bar dataKey="votes" fill="hsl(var(--chart-1))" />
+              <Bar dataKey="votes" fill="var(--chart-1)" />
             </BarChart>
           ) : (
             <LineChart

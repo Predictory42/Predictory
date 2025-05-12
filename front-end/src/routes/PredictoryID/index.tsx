@@ -64,17 +64,20 @@ export const PredictoryID: FC = () => {
     : PredictionStatus.NOT_STARTED;
 
   const parsedOptions = prediction
-    ? prediction.options.map((option) => ({
-        title: option.description ? bufferToString(option.description) : "-",
-        votes: option.votes?.toNumber() ?? 0,
-        value: option.vaultBalance
-          ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
-          : 0,
-        index: option.index,
-      }))
+    ? prediction.options
+        .map((option) => ({
+          title: option.description ? bufferToString(option.description) : "-",
+          votes: option.votes?.toNumber() ?? 0,
+          value: option.vaultBalance
+            ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
+            : 0,
+          index: option.index,
+        }))
+        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
     : [];
 
   const resultIndex = prediction?.result != null ? prediction.result : -1;
+
   const isUserOwner = Boolean(
     publicKey?.toBase58() === prediction?.authority.toBase58(),
   );
@@ -133,7 +136,7 @@ export const PredictoryID: FC = () => {
   // Calculate time left for owner to select result (24 hours after event ends)
   const timeLeftToSelectResult =
     isEnded && resultIndex === -1 && isUserOwner
-      ? prediction.endDate.toNumber() + 24 * 60 * 60 * 1000 - Date.now()
+      ? prediction.endDate.toNumber() + 24 * 60 * 60 * 1000 - Date.now() / 1000
       : 0;
   const hoursLeft = Math.floor(timeLeftToSelectResult / (1000 * 60 * 60));
   const minutesLeft = Math.floor(
