@@ -552,8 +552,7 @@ export class ActionMethods {
     try {
       const eventIdBN = new BN(eventId);
       const instruction = await this.program.methods
-        //TODO: add amount
-        .burnTrust(eventIdBN, new BN(0))
+        .burnTrust(eventIdBN)
         .accounts({ sender })
         .instruction();
 
