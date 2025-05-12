@@ -93,6 +93,7 @@ export const PredictoryID: FC = () => {
   );
 
   const handleOptionSelect = (option: PredictionOption) => {
+    if (option.index === undefined) return;
     if (isUserOwner && isEnded && resultIndex === -1) {
       setOwnerSelectedOption(option.index);
     } else if (isActive) {
