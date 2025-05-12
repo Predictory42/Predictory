@@ -59,12 +59,11 @@ export function PredictionOptions({
 
   const parsedOptions = useMemo(
     () =>
-      options
-        .map((option, index) => ({
-          ...option,
-          index,
-        }))
-        .sort((a, b) => a.index - b.index),
+      options.map((option, index) => ({
+        ...option,
+        //TODO: remove this, when contract is updated
+        index,
+      })),
     [options],
   );
 

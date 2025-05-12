@@ -43,25 +43,25 @@ export function StakeModal({
     }
   };
 
-  if (isOwner) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cannot Participate</DialogTitle>
-            <DialogDescription>
-              As the event creator, you cannot participate in your own
-              prediction event. You can only select the winning option after the
-              event ends.
-            </DialogDescription>
-          </DialogHeader>
-          <Button className="w-full" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // if (isOwner) {
+  //   return (
+  //     <Dialog open={isOpen} onOpenChange={onOpenChange}>
+  //       <DialogContent>
+  //         <DialogHeader>
+  //           <DialogTitle>Cannot Participate</DialogTitle>
+  //           <DialogDescription>
+  //             As the event creator, you cannot participate in your own
+  //             prediction event. You can only select the winning option after the
+  //             event ends.
+  //           </DialogDescription>
+  //         </DialogHeader>
+  //         <Button className="w-full" onClick={() => onOpenChange(false)}>
+  //           Close
+  //         </Button>
+  //       </DialogContent>
+  //     </Dialog>
+  //   );
+  // }
 
   const stakeAmount = parseFloat(amount);
   const hasInsufficientFunds = stakeAmount > (balance ?? 0);
