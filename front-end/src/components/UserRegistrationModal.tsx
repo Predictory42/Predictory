@@ -72,7 +72,7 @@ export const UserRegistrationModal: FC<UserRegistrationModalProps> = ({
       const userCreationTx = await sendTransaction(tx, connection);
       console.info("userCreationTx", userCreationTx);
 
-      await sleep(3000);
+      await sleep(5000);
       queryClient.invalidateQueries({
         queryKey: ["user", publicKey.toBase58()],
       });

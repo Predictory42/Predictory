@@ -283,10 +283,6 @@ export type Predictory = {
         {
           "name": "eventId",
           "type": "u128"
-        },
-        {
-          "name": "trustAmount",
-          "type": "u64"
         }
       ]
     },
@@ -961,8 +957,8 @@ export type Predictory = {
                 ]
               },
               {
-                "kind": "account",
-                "path": "sender"
+                "kind": "arg",
+                "path": "serhiy"
               }
             ]
           }
@@ -972,7 +968,12 @@ export type Predictory = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "serhiy",
+          "type": "pubkey"
+        }
+      ]
     },
     {
       "name": "recharge",

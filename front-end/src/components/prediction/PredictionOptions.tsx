@@ -40,7 +40,7 @@ export function PredictionOptions({
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
   const [selectedOptionForStake, setSelectedOptionForStake] =
     useState<PredictionOption | null>(null);
-  console.log("selectedOptionForStake", selectedOptionForStake);
+
   const hasUserParticipated = userVoteIndex >= 0;
 
   const handleOptionSelect = (option: PredictionOption) => {

@@ -277,10 +277,6 @@
         {
           "name": "event_id",
           "type": "u128"
-        },
-        {
-          "name": "trust_amount",
-          "type": "u64"
         }
       ]
     },
@@ -955,8 +951,8 @@
                 ]
               },
               {
-                "kind": "account",
-                "path": "sender"
+                "kind": "arg",
+                "path": "serhiy"
               }
             ]
           }
@@ -966,7 +962,12 @@
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "serhiy",
+          "type": "pubkey"
+        }
+      ]
     },
     {
       "name": "recharge",

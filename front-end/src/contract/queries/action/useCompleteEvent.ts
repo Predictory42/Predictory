@@ -27,11 +27,14 @@ const useCompleteEvent = () => {
         eventId,
         optionIndex,
       );
+      const simulation = await connection.simulateTransaction(transaction);
+      console.log("simulation", simulation);
+
       const tx = await sendTransaction(transaction, connection);
       return tx;
     },
     onSuccess: async () => {
-      await sleep(1000);
+      await sleep(5000);
       queryClient.invalidateQueries({ queryKey: ["allEvents"] });
       //TODO: or invalidate event
       // queryClient.invalidateQueries({ queryKey: ["event", eventId] });
