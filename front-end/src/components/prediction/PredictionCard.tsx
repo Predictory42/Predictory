@@ -72,8 +72,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
     value: option.vaultBalance
       ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
       : 0,
-    //TODO: add option index
-    // optionIndex: option.optionIndex,
+    index: option.index,
   }));
 
   const currentStatus = getPredictionStatus({

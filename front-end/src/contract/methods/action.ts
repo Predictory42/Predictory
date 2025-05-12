@@ -541,4 +541,28 @@ export class ActionMethods {
       throw error;
     }
   }
+
+  /**
+   * Burn
+   * @param {PublicKey} sender
+   * @param {string} eventId
+   * @returns {Promise<Transaction>}
+   */
+  async burn(sender: PublicKey, eventId: string): Promise<Transaction> {
+    try {
+      const eventIdBN = new BN(eventId);
+      const instruction = await this.program.methods
+        //TODO: add amount
+        .burnTrust(eventIdBN, new BN(0))
+        .accounts({ sender })
+        .instruction();
+
+      return new Transaction({
+        feePayer: sender,
+      }).add(instruction);
+    } catch (error) {
+      console.error("BURN error \n\n", error);
+      throw error;
+    }
+  }
 }

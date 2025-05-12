@@ -64,13 +64,13 @@ export const PredictoryID: FC = () => {
     : PredictionStatus.NOT_STARTED;
 
   const parsedOptions = prediction
-    ? prediction.options.map((option, index) => ({
+    ? prediction.options.map((option) => ({
         title: option.description ? bufferToString(option.description) : "-",
         votes: option.votes?.toNumber() ?? 0,
         value: option.vaultBalance
           ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
           : 0,
-        index,
+        index: option.index,
       }))
     : [];
 
