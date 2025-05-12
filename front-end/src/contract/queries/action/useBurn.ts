@@ -20,6 +20,9 @@ const useBurn = () => {
         authority,
         eventId,
       );
+
+      const simulation = await connection.simulateTransaction(transaction);
+      console.log("simulation", simulation);
       const tx = await sendTransaction(transaction, connection);
       return tx;
     },

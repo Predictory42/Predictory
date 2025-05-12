@@ -23,6 +23,8 @@ const useCancelEvent = () => {
         contractAdminKey.authority,
       );
       const tx = await sendTransaction(transaction, connection);
+      const simulation = await connection.simulateTransaction(transaction);
+      console.log("simulation", simulation);
       return tx;
     },
     onSuccess: async () => {
