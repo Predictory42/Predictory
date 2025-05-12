@@ -8,7 +8,7 @@ export type PredictionOption = {
   title: string;
   votes: number;
   value: string | number;
-  index: number;
+  index: number | undefined;
 };
 
 type OptionCardProps = {

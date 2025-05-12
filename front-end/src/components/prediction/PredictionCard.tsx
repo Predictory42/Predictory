@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Separator } from "@/shadcn/ui/separator";
 import type { AllEvents } from "@/types/predictory";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { getPredictionStatus } from "@/utils/status";
+import { getPredictionStatus, PredictionStatus } from "@/utils/status";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ExternalLink } from "lucide-react";
 import { APP_ROUTES } from "@/routes/constants";
@@ -31,6 +31,7 @@ type PredictionCardProps = {
     | "options"
     | "result"
     | "id"
+    | "description"
   >;
 };
 
@@ -48,7 +49,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
   const { mutateAsync: vote, isPending: isVoting } = useVote();
 
   const handleOptionSelect = (option: PredictionOption) => {
-    setSelectedOption(option.index);
+    setSelectedOption(option.index ?? null);
   };
 
   const handleParticipate = async (optionIndex: number, amount: number) => {
@@ -85,10 +86,34 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
   const resultIndex = prediction.result != null ? prediction.result : -1;
   const isOwner = prediction.authority.toBase58() === publicKey?.toBase58();
 
+  const descriptionText = prediction.description
+    ? bufferToString(prediction.description)
+    : "";
+
+  // Status-based styling
+  const getStatusStyles = () => {
+    switch (currentStatus) {
+      case PredictionStatus.NOT_STARTED:
+        return "border-popover/30 bg-popover/10";
+      case PredictionStatus.ACTIVE:
+        return "border-primary/30 bg-primary/10";
+      case PredictionStatus.PARTICIPATION_CLOSED:
+        return "border-secondary/30 bg-secondary-50/10";
+      case PredictionStatus.ENDED:
+        return "border-destructive/30 bg-destructive-50/10";
+      case PredictionStatus.CANCELED:
+        return "border-destructive/30 bg-destructive-50/10";
+      default:
+        return "";
+    }
+  };
+
   return (
     <Card
       className={cn(
         "bg-popover/30 backdrop-blur-sm w-full h-full gap-2 p-0 pb-4 hover:shadow-lg transition-all duration-300",
+        "border-2",
+        getStatusStyles(),
       )}
     >
       <div className="flex items-center justify-between p-4 pb-0">
@@ -132,6 +157,12 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
           <span className="text-muted-foreground">SOL</span>
         </span>
       </div>
+
+      {descriptionText && (
+        <div className="px-4 py-2 text-sm text-muted-foreground">
+          {descriptionText}
+        </div>
+      )}
 
       <div className="flex flex-col justify-between gap-2 px-4 mt-2">
         <PredictionOptions
