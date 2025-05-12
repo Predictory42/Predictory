@@ -57,7 +57,7 @@ export const Create: FC = () => {
       );
       console.info("create event transaction hash", createEventTxHash);
 
-      await sleep(2000);
+      await sleep(5000);
 
       const optionsForContract = data.options.map((option, index) => ({
         optionCount: index,
@@ -65,7 +65,7 @@ export const Create: FC = () => {
       }));
 
       const optionChunks = chunkArray(optionsForContract, 3);
-
+      console.log(optionChunks);
       for (const optionChunk of optionChunks) {
         const createOptionsTx =
           await predictoryService.action.createEventOption(
@@ -74,13 +74,17 @@ export const Create: FC = () => {
             optionChunk,
           );
 
+        const createOptionsSimulations =
+          await connection.simulateTransaction(createOptionsTx);
+        console.log(createOptionsSimulations);
         const createOptionsTxHash = await sendTransaction(
           createOptionsTx,
           connection,
         );
         console.info("create options transaction hash", createOptionsTxHash);
+        await sleep(2000);
       }
-      await sleep(2000);
+      await sleep(5000);
 
       navigate(APP_ROUTES.PREDICTORY_ID(eventId));
     } catch (error) {

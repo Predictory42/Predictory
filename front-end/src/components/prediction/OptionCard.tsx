@@ -52,7 +52,8 @@ export function OptionCard({
   ).toFixed(0);
 
   const handleClick = () => {
-    if ((isActive && onSelect && !isOwner) || (isOwnerSelecting && onSelect)) {
+    // if ((isActive && onSelect && !isOwner) || (isOwnerSelecting && onSelect)) {
+    if (isActive && onSelect) {
       onSelect(option);
     }
   };
@@ -64,7 +65,7 @@ export function OptionCard({
         isWinner ? "border-primary" : isEnded ? "opacity-50" : "opacity-100",
         isActive &&
           onSelect &&
-          !isOwner &&
+          // !isOwner &&
           "cursor-pointer hover:border-primary/50 hover:scale-105 transition-all duration-300",
         isSelected && "scale-105 border-primary/50",
         isOwnerSelected && "border-amber-500 scale-105",

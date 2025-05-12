@@ -22,6 +22,7 @@ const useUpdateEventOption = () => {
       if (!predictoryService) throw new Error("Predictory service not found");
       const hashes: string[] = [];
       const optionChunks = chunkArray(options, 3);
+      console.log(optionChunks);
 
       for (const optionChunk of optionChunks) {
         const updateOptionsTx =
@@ -30,7 +31,9 @@ const useUpdateEventOption = () => {
             eventId,
             optionChunk,
           );
-
+        const updateOptionsSimulations =
+          await connection.simulateTransaction(updateOptionsTx);
+        console.log(updateOptionsSimulations);
         const updateOptionsTxHash = await sendTransaction(
           updateOptionsTx,
           connection,

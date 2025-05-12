@@ -52,6 +52,12 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
   };
 
   const handleParticipate = async (optionIndex: number, amount: number) => {
+    console.log("handleParticipate", {
+      optionIndex,
+      amount,
+      selectedOption,
+      publicKey,
+    });
     await vote({
       eventId: prediction.id.toString(),
       userVoteIndex: optionIndex,
@@ -66,6 +72,8 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
     value: option.vaultBalance
       ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
       : 0,
+    //TODO: add option index
+    // optionIndex: option.optionIndex,
   }));
 
   const currentStatus = getPredictionStatus({
