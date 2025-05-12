@@ -122,7 +122,7 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
 
   if (hasUserParticipated && resultIndex !== -1 && !isUserOwner) {
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 w-full">
         {didUserWin && !isClaimed ? (
           <ActionButton onClick={handleClaimReward} isLoading={isClaiming}>
             <Award className="h-4 w-4" />

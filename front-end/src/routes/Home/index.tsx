@@ -40,7 +40,7 @@ export const Home: FC = () => {
         })
         .sort((a, b) => {
           if (a.currentStatus === b.currentStatus) {
-            return a.id.toNumber() - b.id.toNumber();
+            return b.endDate.toNumber() - a.endDate.toNumber();
           }
           return SORT_BY[a.currentStatus] - SORT_BY[b.currentStatus];
         }),
