@@ -347,6 +347,7 @@ export const PredictoryID: FC = () => {
                 isUserOwner={isUserOwner}
                 hasUserParticipated={hasUserParticipated}
                 resultIndex={resultIndex}
+                userVoteIndex={userVoteIndex}
                 didUserWin={didUserWin}
                 isClaimed={isClaimed}
                 ownerSelectedResult={ownerSelectedOption !== null}

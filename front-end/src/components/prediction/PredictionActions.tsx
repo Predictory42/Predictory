@@ -40,6 +40,7 @@ interface PredictionActionsProps {
   isUserOwner: boolean;
   hasUserParticipated: boolean;
   resultIndex: number;
+  userVoteIndex: number;
   didUserWin: boolean;
   isClaimed: boolean;
   ownerSelectedResult: boolean;
@@ -53,6 +54,7 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   isUserOwner,
   hasUserParticipated,
   resultIndex,
+  userVoteIndex,
   didUserWin,
   isClaimed,
   ownerSelectedResult,
@@ -69,14 +71,14 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   const handleClaimReward = async () => {
     await claimReward({
       eventId: predictionId.toString(),
-      optionIndex: resultIndex,
+      optionIndex: userVoteIndex,
     });
   };
 
   const handleContestResult = async () => {
     await appeal({
       eventId: predictionId.toString(),
-      optionIndex: resultIndex,
+      optionIndex: userVoteIndex,
     });
   };
 
