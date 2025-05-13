@@ -29,7 +29,10 @@ const useRecharge = () => {
       await sleep(5000);
       queryClient.invalidateQueries({ queryKey: ["allEvents"] });
       queryClient.invalidateQueries({
-        queryKey: ["balance", publicKey?.toBase58()],
+        queryKey: ["user", publicKey?.toBase58()],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["participants"],
       });
       //TODO: or invalidate event
       // queryClient.invalidateQueries({ queryKey: ["event", eventId] });

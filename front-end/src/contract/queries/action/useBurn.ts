@@ -32,6 +32,9 @@ const useBurn = () => {
       queryClient.invalidateQueries({
         queryKey: ["user", publicKey?.toBase58()],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["participants"],
+      });
     },
   });
 };
