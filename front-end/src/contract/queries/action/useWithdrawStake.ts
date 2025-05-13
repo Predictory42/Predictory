@@ -26,7 +26,12 @@ const useWithdrawStake = () => {
     },
     onSuccess: async () => {
       await sleep(5000);
-      queryClient.invalidateQueries({ queryKey: ["allEvents"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user", publicKey?.toBase58()],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["balance", publicKey?.toBase58()],
+      });
       //TODO: or invalidate event
       // queryClient.invalidateQueries({ queryKey: ["event", eventId] });
     },
