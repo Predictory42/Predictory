@@ -33,6 +33,7 @@ import { personImage, truncateAddress } from "@/utils";
 import { MagicLoading } from "@/components/MagicLoading";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import type { AllEvents } from "@/types/predictory";
+import useParticipants from "@/contract/queries/view/all/useParticipants";
 
 //TODO: Mock creator rating function, implement
 function getCreatorRating(address: string): number {
@@ -57,12 +58,20 @@ export const Profile: FC = () => {
   const [participatedPage, setParticipatedPage] = useState(1);
   const itemsPerPage = 6;
 
+  const { data: participants } = useParticipants();
+
   // Find events created by this user
   const createdEvents =
     allEvents?.filter((event) => event.authority.toBase58() === address) || [];
 
-  //TODO: Mock participated events, implement
-  const participatedEvents: AllEvents[] = [];
+  const participatedEvents: AllEvents[] =
+    allEvents?.filter((event) =>
+      participants?.some(
+        (participant) =>
+          participant.payer.toBase58() === address &&
+          participant.eventId.toString() === event.id.toString(),
+      ),
+    ) || [];
 
   const trustLevel = user?.trustLvl.toNumber() ?? 0;
   //TODO: Mock statistics, implement
@@ -292,6 +301,12 @@ export const Profile: FC = () => {
                 </div>
 
                 <div className="p-3 rounded-md border border-border bg-background/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Stake SOL</span>
+                    <span className="text-sm font-bold">
+                      {(user?.stake.toNumber() ?? 0) / LAMPORTS_PER_SOL} SOL
+                    </span>
+                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Locked SOL</span>
                     <span className="text-sm font-bold">
