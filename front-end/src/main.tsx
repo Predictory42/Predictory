@@ -8,8 +8,3 @@ createRoot(document.getElementById("root")!).render(
     <Providers />
   </StrictMode>,
 );
-
-//1 sorting
-//2 optionIndex
-//3 withdraw stake
-//4 result
