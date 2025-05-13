@@ -53,7 +53,7 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   isUserOwner,
   hasUserParticipated,
   resultIndex,
-  didUserWin,
+  // didUserWin,
   isClaimed,
   ownerSelectedResult,
 }) => {
@@ -116,26 +116,38 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   if (hasUserParticipated && resultIndex !== -1 && !isUserOwner) {
     return (
       <div className="flex flex-col gap-3 w-full">
-        {didUserWin && !isClaimed ? (
-          <ActionButton onClick={handleClaimReward} isLoading={isClaiming}>
-            <Award className="h-4 w-4" />
-            Claim Reward
-          </ActionButton>
+        {isClaimed ? (
+          <>
+            <div className="text-sm flex items-center gap-2">
+              <img
+                src="/icons/caramelized-apple.svg"
+                alt="apple"
+                className="w-4 h-4"
+              />
+              Claimed
+            </div>
+          </>
         ) : (
-          <ActionButton onClick={handleBurn} isLoading={isBurning}>
-            <Flame className="h-4 w-4" />
-            Burn Trust
-          </ActionButton>
-        )}
+          <>
+            <ActionButton onClick={handleClaimReward} isLoading={isClaiming}>
+              <Award className="h-4 w-4" />
+              Claim Reward
+            </ActionButton>
+            <ActionButton onClick={handleBurn} isLoading={isBurning}>
+              <Flame className="h-4 w-4" />
+              Burn Trust
+            </ActionButton>
 
-        <ActionButton
-          onClick={handleContestResult}
-          isLoading={isAppealing}
-          variant="destructive"
-        >
-          <BadgeAlert className="h-4 w-4" />
-          Contest Result
-        </ActionButton>
+            <ActionButton
+              onClick={handleContestResult}
+              isLoading={isAppealing}
+              variant="destructive"
+            >
+              <BadgeAlert className="h-4 w-4" />
+              Contest Result
+            </ActionButton>
+          </>
+        )}
       </div>
     );
   }

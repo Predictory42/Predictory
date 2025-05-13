@@ -81,13 +81,25 @@ export const Profile: FC = () => {
   const mockAppeals = 2;
   const mockSuccessRate = 92;
 
-  //TODO: Mock record data, implement
   const mockRecord = {
-    won: Math.floor(Math.random() * 10) + 5,
-    lost: Math.floor(Math.random() * 5) + 1,
-    pending: Math.floor(Math.random() * 3) + 1,
-    canceled: Math.floor(Math.random() * 2),
-    solEarned: (Math.random() * 10).toFixed(2),
+    won: participatedEvents.filter(
+      (event) =>
+        event.result ===
+        participants?.find((p) => p.eventId.toString() === event.id.toString())
+          ?.option,
+    ).length,
+    lost: participatedEvents.filter(
+      (event) =>
+        event.result !==
+        participants?.find((p) => p.eventId.toString() === event.id.toString())
+          ?.option,
+    ).length,
+    pending: participatedEvents.filter(
+      (event) =>
+        (event.result === -1 || event.result === null) &&
+        event.endDate.toNumber() < Date.now() / 1000,
+    ).length,
+    canceled: participatedEvents.filter((event) => event.canceled).length,
   };
 
   const { mutateAsync: withdrawStake, isPending: isWithdrawing } =
