@@ -9,17 +9,19 @@ export enum PredictionStatus {
   PARTICIPATION_CLOSED = "PARTICIPATION_CLOSED",
   ENDED = "ENDED",
   CANCELED = "CANCELED",
+  WAITING_FOR_RESULT = "WAITING_FOR_RESULT",
 }
 
 export function getPredictionStatus(
   prediction: Pick<
     Event,
-    "startDate" | "endDate" | "participationDeadline" | "canceled"
+    "startDate" | "endDate" | "participationDeadline" | "canceled" | "result"
   >,
 ): PredictionStatus {
   const currentTime = getCurrentTime();
 
-  const { startDate, endDate, participationDeadline, canceled } = prediction;
+  const { startDate, endDate, participationDeadline, canceled, result } =
+    prediction;
 
   const startDateInMs = startDate.mul(new BN(1000));
   const endDateInMs = endDate.mul(new BN(1000));
@@ -44,7 +46,11 @@ export function getPredictionStatus(
   }
 
   if (currentTime.gte(endDateInMs)) {
-    return PredictionStatus.ENDED;
+    if (result) {
+      return PredictionStatus.ENDED;
+    }
+
+    return PredictionStatus.WAITING_FOR_RESULT;
   }
 
   return PredictionStatus.ACTIVE;

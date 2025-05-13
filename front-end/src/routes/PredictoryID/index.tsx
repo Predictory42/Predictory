@@ -60,20 +60,34 @@ export const PredictoryID: FC = () => {
         endDate: prediction.endDate,
         participationDeadline: prediction.participationDeadline,
         canceled: prediction.canceled,
+        result: prediction.result,
       })
     : PredictionStatus.NOT_STARTED;
 
   const parsedOptions = prediction
-    ? prediction.options
-        .map((option) => ({
-          title: option.description ? bufferToString(option.description) : "-",
-          votes: option.votes?.toNumber() ?? 0,
-          value: option.vaultBalance
-            ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
-            : 0,
-          index: option.index,
-        }))
-        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+    ? (() => {
+        const totalVotes = prediction.options.reduce(
+          (sum, option) => sum + (option.votes?.toNumber() ?? 0),
+          0,
+        );
+
+        return prediction.options
+          .map((option) => {
+            const votes = option.votes?.toNumber() ?? 0;
+            return {
+              title: option.description
+                ? bufferToString(option.description)
+                : "-",
+              votes,
+              value: option.vaultBalance
+                ? option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL
+                : 0,
+              percentage: totalVotes > 0 ? (votes / totalVotes) * 100 : 0,
+              index: option.index,
+            };
+          })
+          .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+      })()
     : [];
 
   const resultIndex = prediction?.result != null ? prediction.result : -1;
@@ -85,7 +99,9 @@ export const PredictoryID: FC = () => {
     ? bufferToString(prediction.name)
     : "Untitled";
   const isActive = currentStatus === PredictionStatus.ACTIVE;
-  const isEnded = currentStatus === PredictionStatus.ENDED;
+  const isEnded =
+    currentStatus === PredictionStatus.ENDED ||
+    currentStatus === PredictionStatus.WAITING_FOR_RESULT;
   const isCanceled = currentStatus === PredictionStatus.CANCELED;
 
   const userVoteIndex = participant?.option ?? -1;
@@ -296,7 +312,6 @@ export const PredictoryID: FC = () => {
               <PredictionOptions
                 options={parsedOptions}
                 currentStatus={currentStatus}
-                totalStake={prediction.stake ? prediction.stake.toNumber() : 0}
                 resultIndex={resultIndex}
                 userVoteIndex={userVoteIndex}
                 userStake={

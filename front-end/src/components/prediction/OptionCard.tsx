@@ -7,6 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 export type PredictionOption = {
   title: string;
   votes: number;
+  percentage: number;
   value: string | number;
   index: number | undefined;
 };
@@ -14,7 +15,6 @@ export type PredictionOption = {
 type OptionCardProps = {
   option: PredictionOption;
   currentStatus: PredictionStatus;
-  totalStake: number;
   isWinner: boolean;
   hasUserParticipated: boolean;
   isUserVote: boolean;
@@ -30,7 +30,6 @@ type OptionCardProps = {
 export function OptionCard({
   option,
   currentStatus,
-  totalStake,
   isWinner,
   isUserVote,
   hasUserParticipated,
@@ -44,12 +43,9 @@ export function OptionCard({
 }: OptionCardProps) {
   const { publicKey } = useWallet();
   const isActive = currentStatus === PredictionStatus.ACTIVE;
-  const isEnded = currentStatus === PredictionStatus.ENDED;
-
-  const percentage = (
-    (Number(option.value) / Number(totalStake)) *
-    100
-  ).toFixed(0);
+  const isEnded =
+    currentStatus === PredictionStatus.ENDED ||
+    currentStatus === PredictionStatus.WAITING_FOR_RESULT;
 
   const handleClick = () => {
     if ((isActive && onSelect && !isOwner) || (isOwnerSelecting && onSelect)) {
@@ -83,7 +79,7 @@ export function OptionCard({
               ? "from-amber-500/50 to-amber-500/20"
               : "from-primary/50 to-secondary/20",
         )}
-        style={{ width: `${percentage}%` }}
+        style={{ width: `${option.percentage}%` }}
       />
 
       <div className="relative z-10 flex flex-col w-full">
@@ -121,7 +117,9 @@ export function OptionCard({
                 Your stake: {(userStake / 1e9).toFixed(2)} SOL
               </p>
             )}
-            <p className="text-xs text-muted-foreground">{percentage}%</p>
+            <p className="text-xs text-muted-foreground">
+              {option.percentage}%
+            </p>
           </div>
         </div>
       </div>
