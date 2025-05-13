@@ -53,7 +53,7 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   isUserOwner,
   hasUserParticipated,
   resultIndex,
-  // didUserWin,
+  didUserWin,
   isClaimed,
   ownerSelectedResult,
 }) => {
@@ -129,14 +129,26 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
           </>
         ) : (
           <>
-            <ActionButton onClick={handleClaimReward} isLoading={isClaiming}>
-              <Award className="h-4 w-4" />
-              Claim Reward
-            </ActionButton>
-            <ActionButton onClick={handleBurn} isLoading={isBurning}>
-              <Flame className="h-4 w-4" />
-              Burn Trust
-            </ActionButton>
+            {didUserWin ? (
+              <ActionButton onClick={handleClaimReward} isLoading={isClaiming}>
+                <Award className="h-4 w-4" />
+                Claim Reward
+              </ActionButton>
+            ) : (
+              <>
+                <ActionButton
+                  onClick={handleClaimReward}
+                  isLoading={isClaiming}
+                >
+                  <Award className="h-4 w-4" />
+                  Claim Reward
+                </ActionButton>
+                <ActionButton onClick={handleBurn} isLoading={isBurning}>
+                  <Flame className="h-4 w-4" />
+                  Burn Trust
+                </ActionButton>
+              </>
+            )}
 
             <ActionButton
               onClick={handleContestResult}
