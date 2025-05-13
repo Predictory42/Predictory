@@ -32,6 +32,7 @@ import {
 } from "@/shadcn/ui/card";
 
 import useParticipants from "@/contract/queries/view/all/useParticipants";
+import { calculatePercentage } from "@/utils";
 
 export const PredictoryID: FC = () => {
   const { publicKey } = useWallet();
@@ -82,7 +83,7 @@ export const PredictoryID: FC = () => {
               value: option.vaultBalance
                 ? option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL
                 : 0,
-              percentage: totalVotes > 0 ? (votes / totalVotes) * 100 : 0,
+              percentage: calculatePercentage(totalVotes, votes),
               index: option.index,
             };
           })

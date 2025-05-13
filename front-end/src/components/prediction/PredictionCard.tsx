@@ -17,6 +17,7 @@ import { PredictionTimeline } from "@/components/prediction/PredictionTimeline";
 import useVote from "@/contract/queries/action/useVote";
 import { useWallet } from "@solana/wallet-adapter-react";
 import useParticipants from "@/contract/queries/view/all/useParticipants";
+import { calculatePercentage } from "@/utils";
 
 type PredictionCardProps = {
   prediction: Pick<
@@ -78,8 +79,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
     value: option.vaultBalance
       ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
       : 0,
-    percentage:
-      totalVotes > 0 ? (option.votes?.toNumber() ?? 0 / totalVotes) * 100 : 0,
+    percentage: calculatePercentage(totalVotes, option.votes?.toNumber() ?? 0),
     index: option.index,
   }));
 

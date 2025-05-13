@@ -46,7 +46,7 @@ export function getPredictionStatus(
   }
 
   if (currentTime.gte(endDateInMs)) {
-    if (result) {
+    if (result !== null) {
       return PredictionStatus.ENDED;
     }
 

@@ -54,3 +54,14 @@ export const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
   }
   return result;
 };
+
+export const calculatePercentage = (
+  totalVotes: number,
+  optionVotes: number,
+) => {
+  if (totalVotes === 0) return 0;
+  if (optionVotes === 0) return 0;
+  if (optionVotes > totalVotes) return 0;
+  if (optionVotes === totalVotes) return 100;
+  return ((totalVotes - optionVotes) / totalVotes) * 100;
+};
