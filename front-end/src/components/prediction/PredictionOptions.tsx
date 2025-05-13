@@ -7,7 +7,6 @@ import { cn } from "@/shadcn/utils";
 type PredictionOptionsProps = {
   options: PredictionOption[];
   currentStatus: PredictionStatus;
-  totalStake: number;
   resultIndex?: number;
   userVoteIndex?: number;
   userStake?: number;
@@ -24,7 +23,6 @@ type PredictionOptionsProps = {
 export function PredictionOptions({
   options,
   currentStatus,
-  totalStake,
   resultIndex = -1,
   userVoteIndex = -1,
   userStake = 0,
@@ -74,7 +72,6 @@ export function PredictionOptions({
           key={option.index}
           option={option}
           currentStatus={currentStatus}
-          totalStake={totalStake}
           isWinner={resultIndex === option.index}
           isUserVote={userVoteIndex === option.index}
           userStake={userStake}

@@ -67,12 +67,19 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
     setSelectedOption(null);
   };
 
+  const totalVotes = prediction.options.reduce(
+    (sum, option) => sum + (option.votes?.toNumber() ?? 0),
+    0,
+  );
+
   const parsedOptions = prediction.options.map((option) => ({
     title: option.description ? bufferToString(option.description) : "-",
     votes: option.votes?.toNumber() ?? 0,
     value: option.vaultBalance
       ? (option.vaultBalance?.toNumber() / LAMPORTS_PER_SOL).toFixed(2)
       : 0,
+    percentage:
+      totalVotes > 0 ? (option.votes?.toNumber() ?? 0 / totalVotes) * 100 : 0,
     index: option.index,
   }));
 
@@ -81,6 +88,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
     endDate: prediction.endDate,
     participationDeadline: prediction.participationDeadline,
     canceled: prediction.canceled,
+    result: prediction.result,
   });
 
   const resultIndex = prediction.result != null ? prediction.result : -1;
@@ -103,6 +111,8 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
         return "border-destructive/30 bg-destructive-50/10";
       case PredictionStatus.CANCELED:
         return "border-destructive/30 bg-destructive-50/10";
+      case PredictionStatus.WAITING_FOR_RESULT:
+        return "border-yellow-600/30 bg-yellow-600/10";
       default:
         return "";
     }
@@ -148,7 +158,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
         />
       </div>
 
-      <div className="text-sm flex items-center justify-between gap-2 px-4 mt-1">
+      {/* <div className="text-sm flex items-center justify-between gap-2 px-4 mt-1">
         <p className="flex items-center gap-2">Pool size:</p>
         <span className="text-muted-foreground flex items-center gap-1">
           {prediction.stake
@@ -156,7 +166,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
             : 0}
           <span className="text-muted-foreground">SOL</span>
         </span>
-      </div>
+      </div> */}
 
       {descriptionText && (
         <div className="px-4 py-2 text-sm text-muted-foreground">
@@ -168,7 +178,6 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
         <PredictionOptions
           options={parsedOptions}
           currentStatus={currentStatus}
-          totalStake={prediction.stake ? prediction.stake.toNumber() : 0}
           resultIndex={resultIndex}
           userVoteIndex={participant?.option}
           selectedOption={selectedOption}

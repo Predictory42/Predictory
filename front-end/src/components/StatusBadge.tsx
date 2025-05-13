@@ -1,7 +1,12 @@
 import { Badge } from "@/shadcn/ui/badge";
 import { PredictionStatus } from "@/utils/status";
 
-type StatusVariant = "outline" | "default" | "secondary" | "destructive";
+type StatusVariant =
+  | "outline"
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "waiting";
 
 export function StatusBadge({ status }: { status: PredictionStatus }) {
   const statusConfig: Record<
@@ -27,6 +32,10 @@ export function StatusBadge({ status }: { status: PredictionStatus }) {
     [PredictionStatus.CANCELED]: {
       text: "Canceled",
       variant: "destructive",
+    },
+    [PredictionStatus.WAITING_FOR_RESULT]: {
+      text: "Waiting for Result",
+      variant: "waiting",
     },
   };
 
