@@ -10,10 +10,11 @@ import { getPredictionStatus, PredictionStatus } from "@/utils/status";
 
 const SORT_BY: Record<PredictionStatus, number> = {
   [PredictionStatus.ACTIVE]: 0,
-  [PredictionStatus.NOT_STARTED]: 1,
-  [PredictionStatus.ENDED]: 2,
-  [PredictionStatus.CANCELED]: 3,
-  [PredictionStatus.PARTICIPATION_CLOSED]: 4,
+  [PredictionStatus.WAITING_FOR_RESULT]: 1,
+  [PredictionStatus.NOT_STARTED]: 2,
+  [PredictionStatus.ENDED]: 3,
+  [PredictionStatus.CANCELED]: 4,
+  [PredictionStatus.PARTICIPATION_CLOSED]: 5,
 };
 
 export const Home: FC = () => {
@@ -31,6 +32,7 @@ export const Home: FC = () => {
             endDate: el.endDate,
             participationDeadline: el.participationDeadline,
             canceled: el.canceled,
+            result: el.result,
           });
 
           return {
