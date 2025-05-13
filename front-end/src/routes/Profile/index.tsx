@@ -12,6 +12,7 @@ import {
   Star,
   Medal,
   HeartHandshake,
+  XCircle,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import useAllEvents from "@/contract/queries/view/all/useAllEvents";
@@ -34,6 +35,8 @@ import { MagicLoading } from "@/components/MagicLoading";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import type { AllEvents } from "@/types/predictory";
 import useParticipants from "@/contract/queries/view/all/useParticipants";
+import useWithdrawStake from "@/contract/queries/action/useWithdrawStake";
+import { ActionButton } from "@/components/prediction/PredictionActions";
 
 //TODO: Mock creator rating function, implement
 function getCreatorRating(address: string): number {
@@ -85,6 +88,13 @@ export const Profile: FC = () => {
     pending: Math.floor(Math.random() * 3) + 1,
     canceled: Math.floor(Math.random() * 2),
     solEarned: (Math.random() * 10).toFixed(2),
+  };
+
+  const { mutateAsync: withdrawStake, isPending: isWithdrawing } =
+    useWithdrawStake();
+
+  const handleWithdrawStake = async () => {
+    await withdrawStake();
   };
 
   if (isLoadingUser || isLoadingAllEvents) return <MagicLoading />;
@@ -300,20 +310,30 @@ export const Profile: FC = () => {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-md border border-border bg-background/50">
+                <div className="p-3 rounded-md border border-border bg-background/50 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Stake SOL</span>
+                    <span className="text-sm">Stake balance</span>
                     <span className="text-sm font-bold">
                       {(user?.stake.toNumber() ?? 0) / LAMPORTS_PER_SOL} SOL
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Locked SOL</span>
+                    <span className="text-sm">Locked</span>
                     <span className="text-sm font-bold">
                       {(user?.lockedStake.toNumber() ?? 0) / LAMPORTS_PER_SOL}{" "}
                       SOL
                     </span>
                   </div>
+                  {isCurrentUser && (
+                    <ActionButton
+                      onClick={handleWithdrawStake}
+                      isLoading={isWithdrawing}
+                      variant="destructive"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Withdraw Stake
+                    </ActionButton>
+                  )}
                 </div>
 
                 <div>

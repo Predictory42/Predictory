@@ -5,7 +5,6 @@ import useCompleteEvent from "@/contract/queries/action/useCompleteEvent";
 import useClaimEventReward from "@/contract/queries/action/useClaimEventReward";
 import type { BN } from "@coral-xyz/anchor";
 import useRecharge from "@/contract/queries/action/useRechcarge";
-import useWithdrawStake from "@/contract/queries/action/useWithdrawStake";
 import useAppeal from "@/contract/queries/action/useAppeal";
 import useBurn from "@/contract/queries/action/useBurn";
 
@@ -15,7 +14,7 @@ interface ActionButtonProps
   variant?: "default" | "destructive" | "secondary";
 }
 
-const ActionButton: React.FC<ActionButtonProps> = ({
+export const ActionButton: React.FC<ActionButtonProps> = ({
   children,
   isLoading,
   variant = "default",
@@ -64,8 +63,6 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
   const { mutateAsync: claimReward, isPending: isClaiming } =
     useClaimEventReward();
   const { mutateAsync: recharge, isPending: isRecharging } = useRecharge();
-  const { mutateAsync: withdrawStake, isPending: isWithdrawing } =
-    useWithdrawStake();
   const { mutateAsync: appeal, isPending: isAppealing } = useAppeal();
   const { mutateAsync: burn, isPending: isBurning } = useBurn();
 
@@ -98,10 +95,6 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
       eventId: predictionId.toString(),
       optionIndex: selectedOptionIndex,
     });
-  };
-
-  const handleWithdrawStake = async () => {
-    await withdrawStake();
   };
 
   const handleBurn = async () => {
@@ -165,19 +158,6 @@ export const PredictionActions: React.FC<PredictionActionsProps> = ({
       >
         <XCircle className="h-4 w-4" />
         Cancel Event
-      </ActionButton>
-    );
-  }
-
-  if (isUserOwner && isEnded && resultIndex !== -1) {
-    return (
-      <ActionButton
-        onClick={handleWithdrawStake}
-        isLoading={isWithdrawing}
-        variant="destructive"
-      >
-        <XCircle className="h-4 w-4" />
-        Withdraw Stake
       </ActionButton>
     );
   }
