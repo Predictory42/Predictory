@@ -163,7 +163,7 @@ export const Profile: FC = () => {
                   >
                     <HeartHandshake className="h-3.5 w-3.5 text-primary" />
                     <span className="text-sm font-medium">
-                      {trustLevel} Trust Level
+                      {trustLevel} Mana
                     </span>
                   </Badge>
                 </div>
