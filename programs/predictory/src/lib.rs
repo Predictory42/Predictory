@@ -148,8 +148,4 @@ pub mod predictory {
     pub fn burn_trust(ctx: Context<BurnTrust>, event_id: u128) -> Result<()> {
         ctx.accounts.burn_trust(event_id)
     }
-
-    pub fn mint_trust_for_serhiy(ctx: Context<MintTrustForSerhiy>, serhiy: Pubkey) -> Result<()> {
-        ctx.accounts.mint_trust(serhiy)
-    }
 }
