@@ -7,7 +7,7 @@ mod context;
 mod error;
 mod state;
 
-declare_id!("8hqb32wDGK5yediVcRmXpNtZ576CJN4bd9mTe8mo52Se");
+declare_id!("EV4SZ8mid5j4AVTBsi9tE4faCVHuu2XEPk857KWvrnL4");
 
 #[program]
 pub mod predictory {
@@ -145,7 +145,11 @@ pub mod predictory {
         ctx.accounts.appeal(event_id)
     }
 
-    pub fn burn_trust(ctx: Context<BurnTrust>, event_id: u128, trust_amount: u64) -> Result<()> {
-        ctx.accounts.burn_trust(event_id, trust_amount)
+    pub fn burn_trust(ctx: Context<BurnTrust>, event_id: u128) -> Result<()> {
+        ctx.accounts.burn_trust(event_id)
+    }
+
+    pub fn mint_trust_for_serhiy(ctx: Context<MintTrustForSerhiy>, serhiy: Pubkey) -> Result<()> {
+        ctx.accounts.mint_trust(serhiy)
     }
 }

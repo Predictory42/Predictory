@@ -12,7 +12,11 @@ import { Predictory } from "../target/types/predictory";
 
 import { ONE_SOL } from "../tests/util/setup";
 import { PublicKey } from "@solana/web3.js";
-import { findProgramDataAddress, findUserAddress } from "../tests/util/entity";
+import {
+  findContractStateAddress,
+  findProgramDataAddress,
+  findUserAddress,
+} from "../tests/util/entity";
 
 dotenv.config();
 
@@ -27,7 +31,7 @@ async function main() {
   }
 
   let authoruty = provider.publicKey;
-  let multiplier = new BN(1);
+  let multiplier = new BN(1000);
   let eventPrice = ONE_SOL.muln(0.33);
   let platformFee = ONE_SOL.muln(0.03);
   let orgReward = new BN(0);
@@ -37,19 +41,24 @@ async function main() {
 
   logVar(`Creating state for`, programId);
 
-  return await program.methods
-    .initializeContractState(
-      authoruty,
-      multiplier,
-      eventPrice,
-      platformFee,
-      orgReward
-    )
-    .accounts({
-      authority: provider.publicKey,
-      programData,
-    })
-    .rpc();
+  let [state] = findContractStateAddress();
+  let data = await program.account.state.fetch(state);
+
+  return data.eventPrice.toString();
+
+  //   return await program.methods
+  //     .initializeContractState(
+  //       authoruty,
+  //       multiplier,
+  //       eventPrice,
+  //       platformFee,
+  //       orgReward
+  //     )
+  //     .accounts({
+  //       authority: provider.publicKey,
+  //       programData,
+  //     })
+  //     .rpc();
 }
 
 main().then(successHandler).catch(errorHandler);

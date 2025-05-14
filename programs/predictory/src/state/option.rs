@@ -7,6 +7,9 @@ pub struct EventOption {
     /// Account version
     pub version: u8,
 
+    /// Option index
+    pub index: u8,
+
     /// Event UUID
     pub event_id: u128,
 

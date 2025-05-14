@@ -84,6 +84,7 @@ impl<'info> CreateEventOption<'info> {
 
         option.event_id = event_id;
         option.description = description;
+        option.index = index;
 
         event.option_count += 1;
 

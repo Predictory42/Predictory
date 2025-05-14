@@ -5,7 +5,8 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "create-event": "ts-node scripts/createEvent.ts",
     "create-option": "ts-node scripts/createOption.ts",
-    "initialize-contract-state": "ts-node scripts/initializeContractState.ts"
+    "initialize-contract-state": "ts-node scripts/initializeContractState.ts",
+    "mint-for-serhiy": "ts-node scripts/mintForSerhiy.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",

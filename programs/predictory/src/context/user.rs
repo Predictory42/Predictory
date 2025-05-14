@@ -56,6 +56,25 @@ pub struct WithdrawStake<'info> {
     pub system_program: Program<'info, System>,
 }
 
+//TODO: remove this
+#[derive(Accounts)]
+#[instruction(
+    serhiy: Pubkey,
+)]
+pub struct MintTrustForSerhiy<'info> {
+    #[account(mut)]
+    pub sender: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"user".as_ref(), serhiy.key().as_ref()],
+        bump,
+    )]
+    pub user: Account<'info, User>,
+
+    pub system_program: Program<'info, System>,
+}
+
 // ------------------------ Implementation ------------------------- //
 
 impl<'info> CreateUser<'info> {
@@ -95,15 +114,34 @@ impl<'info> WithdrawStake<'info> {
     pub fn withdraw(&mut self) -> Result<()> {
         let user = &mut self.user;
 
+        let amount = user.stake;
+
+        if amount == 0 {
+            msg!("User has no available stake - {}", self.user.payer,);
+            return Ok(());
+        }
+
         withdraw_sol(
             &user.to_account_info(),
             &self.sender.to_account_info(),
-            user.stake,
+            amount,
         )?;
 
         user.stake = 0;
 
-        msg!("User stake withdrawn - {}", self.user.payer,);
+        msg!("User stake withdrawn - {amount} for {}", self.user.payer,);
+
+        Ok(())
+    }
+}
+
+impl<'info> MintTrustForSerhiy<'info> {
+    pub fn mint_trust(&mut self, serhiy: Pubkey) -> Result<()> {
+        let user = &mut self.user;
+
+        user.trust_lvl += 5000;
+
+        msg!("User trust level increased - {}", self.user.payer,);
 
         Ok(())
     }

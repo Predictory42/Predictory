@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::stake};
+use anchor_lang::prelude::*;
 
 use crate::{
     context::{withdraw_sol, COMPLETION_DEADLINE, UUID_VERSION},
@@ -298,8 +298,9 @@ impl<'info> CancelEvent<'info> {
         // TODO: what happens with his trust coins?
         // TODO: Do i need to add appell on appel?
         if event.start_date <= now {
+            msg!("Event is already started, returning stake to contract admin");
+
             self.user.locked_stake -= event.stake;
-            self.user.stake -= event.stake;
 
             withdraw_sol(
                 &event_acc,
@@ -307,6 +308,8 @@ impl<'info> CancelEvent<'info> {
                 event.stake,
             )?;
         } else {
+            msg!("Event is not started yet, returning stake to user");
+
             self.user.locked_stake -= event.stake;
             self.user.stake += event.stake;
 

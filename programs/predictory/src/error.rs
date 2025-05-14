@@ -52,4 +52,6 @@ pub enum ProgramError {
     AllStakeLocked,
     #[msg("Low stake to create event")]
     StakeTooLow,
+    #[msg("Not enough trust to burn")]
+    NotEnoughTrust,
 }
