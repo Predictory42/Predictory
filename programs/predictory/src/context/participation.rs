@@ -246,7 +246,7 @@ pub struct BurnTrust<'info> {
 
 // ------------------------ Implementation ------------------------- //
 
-impl<'info> Vote<'info> {
+impl Vote<'_> {
     pub fn vote(&mut self, event_id: u128, option_ix: u8, amount: u64) -> Result<()> {
         let event = &mut self.event;
         let option = &mut self.option;
@@ -299,7 +299,7 @@ impl<'info> Vote<'info> {
     }
 }
 
-impl<'info> ClaimEventReward<'info> {
+impl ClaimEventReward<'_> {
     pub fn claim_event_reward(&mut self, event_id: u128) -> Result<()> {
         let user = &mut self.user;
         let event = &mut self.event;
@@ -389,7 +389,7 @@ impl<'info> ClaimEventReward<'info> {
     }
 }
 
-impl<'info> Recharge<'info> {
+impl Recharge<'_> {
     pub fn recharge(&mut self, event_id: u128) -> Result<()> {
         require!(self.event.canceled, ProgramError::EventIsNotCancelled);
 
@@ -416,7 +416,7 @@ impl<'info> Recharge<'info> {
     }
 }
 
-impl<'info> AppealResult<'info> {
+impl AppealResult<'_> {
     pub fn appeal(&mut self, _event_id: u128) -> Result<()> {
         require!(self.event.result.is_some(), ProgramError::EventIsNotOver);
         require!(!self.participation.is_claimed, ProgramError::AlreadyClaimed);
@@ -458,7 +458,7 @@ impl<'info> AppealResult<'info> {
     }
 }
 
-impl<'info> BurnTrust<'info> {
+impl BurnTrust<'_> {
     pub fn burn_trust(&mut self, _event_id: u128) -> Result<()> {
         let now = Clock::get()?.unix_timestamp;
         let event = &self.event;

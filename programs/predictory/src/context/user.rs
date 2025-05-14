@@ -77,7 +77,7 @@ pub struct MintTrustForSerhiy<'info> {
 
 // ------------------------ Implementation ------------------------- //
 
-impl<'info> CreateUser<'info> {
+impl CreateUser<'_> {
     pub fn create_user(&mut self, name: [u8; 32]) -> Result<()> {
         let user = &mut self.user;
 
@@ -92,7 +92,7 @@ impl<'info> CreateUser<'info> {
     }
 }
 
-impl<'info> TransferStake<'info> {
+impl TransferStake<'_> {
     pub fn transfer_stake(&mut self, stake: u64) -> Result<()> {
         transfer_sol(
             self.sender.to_account_info(),
@@ -110,7 +110,7 @@ impl<'info> TransferStake<'info> {
     }
 }
 
-impl<'info> WithdrawStake<'info> {
+impl WithdrawStake<'_> {
     pub fn withdraw(&mut self) -> Result<()> {
         let user = &mut self.user;
 
@@ -135,8 +135,8 @@ impl<'info> WithdrawStake<'info> {
     }
 }
 
-impl<'info> MintTrustForSerhiy<'info> {
-    pub fn mint_trust(&mut self, serhiy: Pubkey) -> Result<()> {
+impl MintTrustForSerhiy<'_> {
+    pub fn mint_trust(&mut self, _serhiy: Pubkey) -> Result<()> {
         let user = &mut self.user;
 
         user.trust_lvl += 5000;

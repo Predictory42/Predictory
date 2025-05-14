@@ -66,7 +66,7 @@ pub struct UpdateEventOption<'info> {
 
 // ------------------------ Implementation ------------------------- //
 
-impl<'info> CreateEventOption<'info> {
+impl CreateEventOption<'_> {
     pub fn create_event_option(
         &mut self,
         event_id: u128,
@@ -98,7 +98,7 @@ impl<'info> CreateEventOption<'info> {
     }
 }
 
-impl<'info> UpdateEventOption<'info> {
+impl UpdateEventOption<'_> {
     pub fn update_event_option(
         &mut self,
         event_id: u128,

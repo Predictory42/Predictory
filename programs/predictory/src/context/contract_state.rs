@@ -49,7 +49,7 @@ pub struct UpdateContractState<'info> {
 
 // ------------------------ Implementation ------------------------- //
 
-impl<'info> InitializeContractState<'info> {
+impl InitializeContractState<'_> {
     pub fn initialize_contract_state(
         &mut self,
         authority: Pubkey,
@@ -73,7 +73,7 @@ impl<'info> InitializeContractState<'info> {
     }
 }
 
-impl<'info> UpdateContractState<'info> {
+impl UpdateContractState<'_> {
     pub fn set_authority(&mut self, authority: Pubkey) -> Result<()> {
         let state = &mut self.state;
 

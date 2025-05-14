@@ -155,7 +155,7 @@ pub struct CreateEventArgs {
 
 // ------------------------ Implementation ------------------------- //
 
-impl<'info> CreateEvent<'info> {
+impl CreateEvent<'_> {
     pub fn create_event(&mut self, event_id: u128, args: CreateEventArgs) -> Result<()> {
         let id = uuid::Uuid::from_u128(event_id);
         self.validate(id, &args)?;
@@ -221,7 +221,7 @@ impl<'info> CreateEvent<'info> {
     }
 }
 
-impl<'info> UpdateEvent<'info> {
+impl UpdateEvent<'_> {
     pub fn update_event_name(&mut self, _event_id: u128, name: [u8; 32]) -> Result<()> {
         let event_meta = &mut self.event_meta;
 
@@ -283,7 +283,7 @@ impl<'info> UpdateEvent<'info> {
     }
 }
 
-impl<'info> CancelEvent<'info> {
+impl CancelEvent<'_> {
     pub fn cancel_event(&mut self, event_id: u128) -> Result<()> {
         let event_acc = self.event.to_account_info();
         let event = &mut self.event;
@@ -324,7 +324,7 @@ impl<'info> CancelEvent<'info> {
     }
 }
 
-impl<'info> CompleteEvent<'info> {
+impl CompleteEvent<'_> {
     pub fn complete_event(&mut self, event_id: u128, result: u8) -> Result<()> {
         let event = &mut self.event;
 
