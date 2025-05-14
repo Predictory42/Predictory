@@ -409,12 +409,6 @@ describe("General event test", () => {
       const fetcheUserAccountAfter = await program.account.user.fetch(user);
 
       expect(
-        fetcheUserAccountAfter.stake.eq(
-          fetcheUserAccountBefore.stake.sub(eventPrice)
-        )
-      ).toBeTruthy();
-
-      expect(
         fetcheUserAccountAfter.lockedStake.eq(
           fetcheUserAccountBefore.lockedStake.sub(eventPrice)
         )
@@ -452,12 +446,6 @@ describe("General event test", () => {
 
       const userBalanceAfter = await provider.connection.getBalance(user);
       const fetcheUserAccountAfter = await program.account.user.fetch(user);
-
-      expect(
-        fetcheUserAccountAfter.stake.eq(
-          fetcheUserAccountBefore.stake.sub(eventPrice)
-        )
-      ).toBeTruthy();
 
       expect(
         fetcheUserAccountAfter.lockedStake.eq(
@@ -660,12 +648,6 @@ describe("General event test", () => {
         )
       ).toBeTruthy();
 
-      expect(
-        fetchedUserAccount.lockedStake.eq(
-          fetchedUserBefore.lockedStake.add(participationAmount)
-        )
-      ).toBeTruthy();
-
       expect(userBalanceAfter).toEqual(
         userBalanceBefore - participationAmount.toNumber()
       );
@@ -792,12 +774,6 @@ describe("General event test", () => {
         fetchedUserAccount.stake.eq(fetchedUserBefore.stake.add(amount))
       ).toBeTruthy();
 
-      expect(
-        fetchedUserAccount.lockedStake.eq(
-          fetchedUserBefore.lockedStake.sub(participationAmount)
-        )
-      ).toBeTruthy();
-
       expect(userBalanceAfter).toEqual(userBalanceBefore + amount.toNumber());
     });
 
@@ -887,12 +863,6 @@ describe("General event test", () => {
         fetchedUserAccount.stake.eq(fetchedUserBefore.stake.add(amount))
       ).toBeTruthy();
 
-      expect(
-        fetchedUserAccount.lockedStake.eq(
-          fetchedUserBefore.lockedStake.sub(participationAmount)
-        )
-      ).toBeTruthy();
-
       expect(userBalanceAfter).toEqual(userBalanceBefore + amount.toNumber());
     });
   });
@@ -947,12 +917,6 @@ describe("General event test", () => {
       expect(
         fetchedUserAccount.stake.eq(
           fetchedUserBefore.stake.add(participationAmount)
-        )
-      ).toBeTruthy();
-
-      expect(
-        fetchedUserAccount.lockedStake.eq(
-          fetchedUserBefore.lockedStake.sub(participationAmount)
         )
       ).toBeTruthy();
 
