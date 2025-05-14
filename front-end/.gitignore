@@ -26,10 +26,3 @@ dist-ssr
 .env
 .DS_Store
 *.pem
-
-# Rust
-.anchor
-target
-**/*.rs.bk
-test-ledger
-
