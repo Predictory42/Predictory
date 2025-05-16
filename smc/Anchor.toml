@@ -1,0 +1,25 @@
+[toolchain]
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = false
+
+[test]
+upgradeable = true
+
+[programs.localnet]
+predictory = "EV4SZ8mid5j4AVTBsi9tE4faCVHuu2XEPk857KWvrnL4"
+
+[programs.devnet]
+predictory = "EV4SZ8mid5j4AVTBsi9tE4faCVHuu2XEPk857KWvrnL4"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run jest"
