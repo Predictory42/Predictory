@@ -14,6 +14,7 @@
 ## 🚀 Overview
 
 **Predictory** empowers users to create, participate, and manage event-based prediction markets.  
+
 Built on the blockchain, it ensures fairness, transparency, and community-driven governance.
 
 Whether you're forecasting sports outcomes, community events, or industry trends—**Predictory** gives you the tools to monetize your knowledge and engage your community.
@@ -30,3 +31,7 @@ Whether you're forecasting sports outcomes, community events, or industry trends
 - 🛡️ Secure, audited contracts (WIP)
 
 ---
+
+## 🌐 Visit Predictory
+
+[Click here to visit Predictory](https://predictory.vercel.app/)
