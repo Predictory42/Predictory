@@ -21,6 +21,7 @@ import { PredictionMetadata } from "@/components/prediction/PredictionMetadata";
 import { PredictionActions } from "@/components/prediction/PredictionActions";
 import { PredictionChart } from "@/components/prediction/PredictionChart";
 import useVote from "@/contract/queries/action/useVote";
+import { motion } from "framer-motion";
 
 import {
   Card,
@@ -136,16 +137,41 @@ export const PredictoryID: FC = () => {
 
   if (!prediction) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Button variant="ghost" className="mb-8" asChild>
-          <Link to="/" className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Predictions
-          </Link>
-        </Button>
-        <div className="text-center py-16">
-          <h2 className="text-2xl font-bold">Prediction not found</h2>
-        </div>
+      <div className="container mx-auto px-4 py-8 min-h-screen">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Button variant="ghost" className="mb-8" asChild>
+            <Link to="/" className="flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Predictions
+            </Link>
+          </Button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-16 backdrop-blur-sm bg-card/20 rounded-xl border border-border p-8"
+        >
+          <img
+            src="/icons/rabbit.svg"
+            alt="rabbit"
+            className="w-20 h-20 mx-auto mb-4"
+          />
+          <h2 className="text-2xl font-bold mb-2">Prediction not found</h2>
+          <p className="text-muted-foreground mb-6">
+            The prediction you're looking for doesn't exist or has been removed
+          </p>
+          <Button variant="outline" className="group">
+            <Link to="/" className="flex items-center gap-2">
+              Explore Predictions
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        </motion.div>
       </div>
     );
   }
@@ -165,8 +191,13 @@ export const PredictoryID: FC = () => {
     ownerSelectedOption !== null ? ownerSelectedOption : undefined;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto px-4 py-8 min-h-screen relative z-10">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-between mb-8"
+      >
         <Button variant="ghost" asChild>
           <Link to="/" className="flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
@@ -176,55 +207,75 @@ export const PredictoryID: FC = () => {
 
         <div className="flex items-center gap-2">
           {isUserOwner && currentStatus === PredictionStatus.NOT_STARTED && (
-            <Button
-              variant="outline"
-              className="flex items-center gap-2"
-              onClick={() => setIsEditDialogOpen(true)}
-            >
-              <Edit className="w-4 h-4" />
-              <span className="hidden md:block">Edit Prediction</span>
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Edit className="w-4 h-4" />
+                <span className="hidden md:block">Edit Prediction</span>
+              </Button>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {isUserOwner && resultIndex === -1 && (
-        <Alert className="mb-6 border-amber-500 bg-amber-500/20 text-amber-500">
-          <AlertCircle className="h-5 w-5" />
-          <AlertTitle>Owner Action Required</AlertTitle>
-          <AlertDescription className="flex flex-col gap-1">
-            <p>
-              You must select a result within 24 hours after the event has
-              ended, or you'll lose part of your stake and trust tokens.
-            </p>
-            {isEnded && (
-              <div className="flex items-center gap-2 mt-1 text-amber-600">
-                <Clock className="h-4 w-4" />
-                <span>
-                  Time left: {hoursLeft}h {minutesLeft}m
-                </span>
-              </div>
-            )}
-          </AlertDescription>
-        </Alert>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Alert className="mb-6 border-amber-500 bg-amber-500/20 text-amber-500 backdrop-blur-sm">
+            <AlertCircle className="h-5 w-5" />
+            <AlertTitle>Owner Action Required</AlertTitle>
+            <AlertDescription className="flex flex-col gap-1">
+              <p>
+                You must select a result within 24 hours after the event has
+                ended, or you'll lose part of your stake and trust tokens.
+              </p>
+              {isEnded && (
+                <div className="flex items-center gap-2 mt-1 text-amber-600">
+                  <Clock className="h-4 w-4" />
+                  <span>
+                    Time left: {hoursLeft}h {minutesLeft}m
+                  </span>
+                </div>
+              )}
+            </AlertDescription>
+          </Alert>
+        </motion.div>
       )}
 
       {isCanceled && hasUserParticipated && (
-        <Alert className="mb-6 border-blue-500 bg-blue-500/20">
-          <AlertCircle className="h-5 w-5 text-blue-500" />
-          <AlertTitle className="text-blue-500">Event Canceled</AlertTitle>
-          <AlertDescription>
-            This event has been canceled. You can claim a refund for your stake.
-          </AlertDescription>
-        </Alert>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Alert className="mb-6 border-blue-500 bg-blue-500/20 backdrop-blur-sm">
+            <AlertCircle className="h-5 w-5 text-blue-500" />
+            <AlertTitle className="text-blue-500">Event Canceled</AlertTitle>
+            <AlertDescription>
+              This event has been canceled. You can claim a refund for your
+              stake.
+            </AlertDescription>
+          </Alert>
+        </motion.div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card className="bg-popover/30 backdrop-blur-sm overflow-hidden mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="lg:col-span-2"
+        >
+          <Card className="backdrop-blur-sm bg-card/30 overflow-hidden mb-6 rounded-xl border border-border">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-3xl font-bold">
+                <CardTitle className="text-3xl font-bold font-cinzel bg-gradient-to-r from-primary via-accent to-chart-1 bg-clip-text text-transparent">
                   {predictionName}
                 </CardTitle>
                 <StatusBadge status={currentStatus} />
@@ -234,7 +285,12 @@ export const PredictoryID: FC = () => {
 
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:flex md:flex-row md:justify-between md:items-stretch gap-4 mb-6">
-                <div className="flex-1">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex-1"
+                >
                   <h3 className="text-sm font-medium mb-2">
                     Prediction Details
                   </h3>
@@ -259,30 +315,45 @@ export const PredictoryID: FC = () => {
                       showCancelOption={resultIndex >= 0 && isUserOwner}
                     />
                   </div>
-                </div>
+                </motion.div>
 
                 <Separator orientation="vertical" className="hidden md:block" />
                 <Separator className=" md:hidden" />
 
-                <div className="flex-1">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex-1"
+                >
                   <h3 className="text-sm font-medium mb-2">Timeline</h3>
                   <PredictionTimeline
                     startDate={prediction.startDate.toNumber()}
                     endDate={prediction.endDate.toNumber()}
                     participationDeadline={prediction.participationDeadline?.toNumber()}
                   />
-                </div>
+                </motion.div>
               </div>
 
-              <PredictionChart options={parsedOptions} />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <PredictionChart options={parsedOptions} />
+              </motion.div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
-        <div>
-          <Card className="bg-popover/30 backdrop-blur-sm overflow-hidden sticky top-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Card className="backdrop-blur-sm bg-card/30 overflow-hidden sticky top-6 rounded-xl border border-border">
             <CardHeader>
-              <CardTitle className="text-xl">Options</CardTitle>
+              <CardTitle className="text-xl font-cinzel">Options</CardTitle>
               {isActive ? (
                 <p className="text-sm text-muted-foreground">
                   Select an option to participate
@@ -332,9 +403,13 @@ export const PredictoryID: FC = () => {
               />
 
               {isActive && selectedOption !== null && (
-                <p className="text-xs text-center text-primary mt-4">
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs text-center text-primary mt-4"
+                >
                   You selected: {parsedOptions[selectedOption]?.title}
-                </p>
+                </motion.p>
               )}
             </CardContent>
 
@@ -354,7 +429,7 @@ export const PredictoryID: FC = () => {
               />
             </CardFooter>
           </Card>
-        </div>
+        </motion.div>
       </div>
 
       <EditPredictionDialog
