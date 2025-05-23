@@ -13,6 +13,12 @@ import {
   Medal,
   HeartHandshake,
   XCircle,
+  TrendingUp,
+  Sparkles,
+  Globe,
+  Clock,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import useAllEvents from "@/contract/queries/view/all/useAllEvents";
@@ -29,7 +35,6 @@ import {
 } from "@/shadcn/ui/card";
 import { Separator } from "@/shadcn/ui/separator";
 import { Badge } from "@/shadcn/ui/badge";
-import { cn } from "@/shadcn/utils";
 import { personImage, truncateAddress } from "@/utils";
 import { MagicLoading } from "@/components/MagicLoading";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
@@ -37,6 +42,7 @@ import type { AllEvents } from "@/types/predictory";
 import useParticipants from "@/contract/queries/view/all/useParticipants";
 import useWithdrawStake from "@/contract/queries/action/useWithdrawStake";
 import { ActionButton } from "@/components/prediction/PredictionActions";
+import { motion } from "framer-motion";
 
 //TODO: Mock creator rating function, implement
 function getCreatorRating(address: string): number {
@@ -112,35 +118,48 @@ export const Profile: FC = () => {
   if (isLoadingUser || isLoadingAllEvents) return <MagicLoading />;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Button variant="ghost" className="mb-8" asChild>
-        <Link to="/" className="flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Predictions
-        </Link>
-      </Button>
+    <div className="container mx-auto px-4 py-8 min-h-screen relative z-10">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Button variant="ghost" className="mb-8" asChild>
+          <Link to="/" className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Predictions
+          </Link>
+        </Button>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <Card
-            className={cn("bg-popover/30 backdrop-blur-sm overflow-hidden")}
-          >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="lg:col-span-2"
+        >
+          <Card className="backdrop-blur-sm bg-card/30 overflow-hidden rounded-xl border border-border">
             <CardHeader className="pb-2">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="relative shrink-0">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-sm opacity-30"></div>
                     <img
                       src={personImage(address || "")}
                       alt="Avatar"
-                      className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-primary rounded-full"
+                      className="w-16 h-16 sm:w-20 sm:h-20 border-2 border-primary rounded-full relative z-10"
                     />
+                    <div className="absolute -bottom-1 -right-1 z-20 bg-background rounded-full p-1 border border-primary">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                    </div>
                   </div>
 
                   <div>
-                    <CardTitle className="text-3xl font-bold flex items-center gap-2">
+                    <CardTitle className="text-3xl font-bold flex items-center gap-2 font-cinzel">
                       {userName ? userName : truncateAddress(address || "")}
                       <Badge variant="outline" className="ml-2 text-xs">
-                        {isCurrentUser ? "You" : "User"}
+                        {isCurrentUser ? "You" : "Oracle"}
                       </Badge>
                     </CardTitle>
                     {userName && (
@@ -151,7 +170,7 @@ export const Profile: FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="link" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild>
                     <a
                       href={`https://solscan.io/account/${address}?cluster=devnet`}
                       target="_blank"
@@ -175,24 +194,24 @@ export const Profile: FC = () => {
               </div>
             </CardHeader>
             <Separator />
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between mb-4">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-6">
                 <Badge
                   variant="outline"
-                  className="px-2.5 py-1 flex items-center gap-1 text-amber-500 border-amber-500"
+                  className="px-3 py-1.5 flex items-center gap-1.5 text-amber-500 border-amber-500"
                 >
-                  <Star className="h-3.5 w-3.5 fill-amber-500" />
+                  <Star className="h-4 w-4 fill-amber-500" />
                   <span className="text-sm font-medium">
-                    {creatorRating.toFixed(1)} Rating
+                    {creatorRating.toFixed(1)} Oracle Rating
                   </span>
                 </Badge>
 
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className="px-2.5 py-1 flex items-center gap-1 border-primary"
+                    className="px-3 py-1.5 flex items-center gap-1.5 border-primary"
                   >
-                    <HeartHandshake className="h-3.5 w-3.5 text-primary" />
+                    <HeartHandshake className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium">
                       {trustLevel} Mana
                     </span>
@@ -200,84 +219,126 @@ export const Profile: FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium mb-2">Trust Profile</h3>
+                  <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                    <Globe className="h-4 w-4 text-primary" />
+                    Oracle Influence
+                  </h3>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 rounded-md border border-border bg-background/50">
-                      <div className="flex items-center justify-between mb-1">
+                    <motion.div
+                      whileHover={{ y: -3 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-4 rounded-lg border border-border bg-background/50 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">
                           Appeals Filed
                         </span>
-                        <AlertCircle className="h-3 w-3 text-amber-500" />
+                        <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
                       </div>
-                      <p className="text-xl font-bold">{mockAppeals}</p>
-                    </div>
-                    <div className="p-3 rounded-md border border-border bg-background/50">
-                      <div className="flex items-center justify-between mb-1">
+                      <p className="text-2xl font-bold">{mockAppeals}</p>
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ y: -3 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-4 rounded-lg border border-border bg-background/50 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">
                           Success Rate
                         </span>
-                        <Award className="h-3 w-3 text-green-500" />
+                        <Award className="h-3.5 w-3.5 text-green-500" />
                       </div>
-                      <p className="text-xl font-bold">{mockSuccessRate}%</p>
-                    </div>
+                      <p className="text-2xl font-bold">{mockSuccessRate}%</p>
+                    </motion.div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium mb-2">Activity</h3>
+                  <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-accent" />
+                    Market Activity
+                  </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 rounded-md border border-border bg-background/50">
-                      <div className="flex items-center justify-between mb-1">
+                    <motion.div
+                      whileHover={{ y: -3 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-4 rounded-lg border border-border bg-background/50 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">
                           Created
                         </span>
-                        <FileCheck className="h-3 w-3 text-blue-500" />
+                        <FileCheck className="h-3.5 w-3.5 text-blue-500" />
                       </div>
-                      <p className="text-xl font-bold">
+                      <p className="text-2xl font-bold">
                         {createdEvents.length}
                       </p>
-                    </div>
-                    <div className="p-3 rounded-md border border-border bg-background/50">
-                      <div className="flex items-center justify-between mb-1">
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ y: -3 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-4 rounded-lg border border-border bg-background/50 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">
                           Participated
                         </span>
-                        <Flame className="h-3 w-3 text-orange-500" />
+                        <Flame className="h-3.5 w-3.5 text-orange-500" />
                       </div>
-                      <p className="text-xl font-bold">
+                      <p className="text-2xl font-bold">
                         {participatedEvents.length}
                       </p>
-                    </div>
+                    </motion.div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-1.5">
+                    <Award className="h-4 w-4 text-chart-3" />
+                    Mystical Achievements
+                  </h3>
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge className="bg-amber-500/20 text-amber-500 border-amber-500 gap-1.5 py-1.5">
+                      <Medal className="h-3.5 w-3.5 fill-amber-500" />
+                      Prophecy Master
+                    </Badge>
+                    <Badge className="bg-blue-500/20 text-blue-500 border-blue-500 gap-1.5 py-1.5">
+                      <Award className="h-3.5 w-3.5 fill-blue-500" />
+                      Trusted Oracle
+                    </Badge>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
-        <div>
-          <Card className="bg-popover/30 backdrop-blur-sm overflow-hidden h-full">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Card className="backdrop-blur-sm bg-card/30 overflow-hidden rounded-xl border border-border h-full">
             <CardHeader>
-              <CardTitle>Prediction Stats</CardTitle>
+              <CardTitle className="font-cinzel flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Divination Stats
+              </CardTitle>
             </CardHeader>
             <Separator />
-            <CardContent className="pt-4">
+            <CardContent className="pt-6">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-medium mb-2">
-                    Outcome Distribution
-                  </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="flex items-center gap-1.5 text-sm">
                         <Badge
                           variant="outline"
-                          className="h-2 w-2 p-0 bg-green-500 border-green-500"
+                          className="h-2.5 w-2.5 p-0 bg-green-500 border-green-500 rounded-full"
                         ></Badge>
-                        Won
+                        Prophecies Fulfilled
                       </span>
                       <span className="text-sm font-medium text-green-500">
                         {mockRecord.won}
@@ -287,9 +348,9 @@ export const Profile: FC = () => {
                       <span className="flex items-center gap-1.5 text-sm">
                         <Badge
                           variant="outline"
-                          className="h-2 w-2 p-0 bg-red-500 border-red-500"
+                          className="h-2.5 w-2.5 p-0 bg-red-500 border-red-500 rounded-full"
                         ></Badge>
-                        Lost
+                        Incorrect Visions
                       </span>
                       <span className="text-sm font-medium text-red-500">
                         {mockRecord.lost}
@@ -299,9 +360,9 @@ export const Profile: FC = () => {
                       <span className="flex items-center gap-1.5 text-sm">
                         <Badge
                           variant="outline"
-                          className="h-2 w-2 p-0 bg-amber-500 border-amber-500"
+                          className="h-2.5 w-2.5 p-0 bg-amber-500 border-amber-500 rounded-full"
                         ></Badge>
-                        Pending
+                        Unresolved Omens
                       </span>
                       <span className="text-sm font-medium text-amber-500">
                         {mockRecord.pending}
@@ -311,9 +372,9 @@ export const Profile: FC = () => {
                       <span className="flex items-center gap-1.5 text-sm">
                         <Badge
                           variant="outline"
-                          className="h-2 w-2 p-0 bg-gray-500 border-gray-500"
+                          className="h-2.5 w-2.5 p-0 bg-gray-500 border-gray-500 rounded-full"
                         ></Badge>
-                        Canceled
+                        Dispelled Forecasts
                       </span>
                       <span className="text-sm font-medium">
                         {mockRecord.canceled}
@@ -322,15 +383,25 @@ export const Profile: FC = () => {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-md border border-border bg-background/50 flex flex-col gap-2">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-4 rounded-lg border border-border bg-background/50 backdrop-blur-sm flex flex-col gap-3"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Stake balance</span>
+                    <span className="text-sm flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Stake balance
+                    </span>
                     <span className="text-sm font-bold">
                       {(user?.stake.toNumber() ?? 0) / LAMPORTS_PER_SOL} SOL
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Locked</span>
+                    <span className="text-sm flex items-center gap-1.5">
+                      <Lock className="h-4 w-4 text-amber-500" />
+                      Locked
+                    </span>
                     <span className="text-sm font-bold">
                       {(user?.lockedStake.toNumber() ?? 0) / LAMPORTS_PER_SOL}{" "}
                       SOL
@@ -341,42 +412,34 @@ export const Profile: FC = () => {
                       onClick={handleWithdrawStake}
                       isLoading={isWithdrawing}
                       variant="destructive"
+                      className="mt-2"
                     >
                       <XCircle className="h-4 w-4" />
                       Withdraw Stake
                     </ActionButton>
                   )}
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Achievements</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    <Badge className="bg-amber-500/20 text-amber-500 border-amber-500 gap-1 py-1">
-                      <Medal className="h-3 w-3 fill-amber-500" />
-                      Top Predictor
-                    </Badge>
-                    <Badge className="bg-blue-500/20 text-blue-500 border-blue-500 gap-1 py-1">
-                      <Award className="h-3 w-3 fill-blue-500" />
-                      Trusted User
-                    </Badge>
-                  </div>
-                </div>
+                </motion.div>
               </div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.1 }}
+        className="mb-8"
+      >
         <Tabs defaultValue="created">
-          <TabsList className="w-full grid grid-cols-2 lg:w-fit">
+          <TabsList className="w-full grid grid-cols-2 lg:w-fit mb-6">
             <TabsTrigger value="created">Created Predictions</TabsTrigger>
             <TabsTrigger value="participated">
               Participated Predictions
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="created" className="mt-6">
+          <TabsContent value="created" className="mt-0">
             {createdEvents.length > 0 ? (
               <PaginatedList
                 items={createdEvents}
@@ -391,15 +454,26 @@ export const Profile: FC = () => {
                 )}
               />
             ) : (
-              <Card className="bg-muted/30 p-8 text-center">
-                <p className="text-muted-foreground">
-                  No created predictions found
+              <Card className="backdrop-blur-sm bg-card/30 p-8 text-center rounded-xl border border-border">
+                <img
+                  src="/icons/rabbit.svg"
+                  alt="rabbit"
+                  className="w-16 h-16 mx-auto mb-4"
+                />
+                <p className="text-muted-foreground mb-4">
+                  You haven't created any predictions yet
                 </p>
+                <Button variant="outline" className="group">
+                  <Link to="/create" className="flex items-center gap-2">
+                    Create Your First Prediction
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
               </Card>
             )}
           </TabsContent>
 
-          <TabsContent value="participated" className="mt-6">
+          <TabsContent value="participated" className="mt-0">
             {participatedEvents.length > 0 ? (
               <PaginatedList
                 items={participatedEvents}
@@ -414,15 +488,26 @@ export const Profile: FC = () => {
                 )}
               />
             ) : (
-              <Card className="bg-muted/30 p-8 text-center">
-                <p className="text-muted-foreground">
-                  No participated predictions found
+              <Card className="backdrop-blur-sm bg-card/30 p-8 text-center rounded-xl border border-border">
+                <img
+                  src="/icons/rabbit.svg"
+                  alt="rabbit"
+                  className="w-16 h-16 mx-auto mb-4"
+                />
+                <p className="text-muted-foreground mb-4">
+                  You haven't participated in any predictions yet
                 </p>
+                <Button variant="outline" className="group">
+                  <Link to="/" className="flex items-center gap-2">
+                    Explore Predictions
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
               </Card>
             )}
           </TabsContent>
         </Tabs>
-      </div>
+      </motion.div>
     </div>
   );
 };
