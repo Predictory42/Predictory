@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FC } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@/shadcn/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Wallet } from "lucide-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { Link, useNavigate } from "react-router";
 import useBalance from "@/contract/queries/useBalance";
@@ -13,6 +13,8 @@ import type { PredictionFormValues } from "./components/types";
 import { APP_ROUTES } from "../constants";
 import useContractState from "@/contract/queries/view/id/useContractState";
 import { chunkArray, sleep } from "@/utils";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/shadcn/ui/card";
 
 export const Create: FC = () => {
   const navigate = useNavigate();
@@ -95,27 +97,53 @@ export const Create: FC = () => {
   };
 
   return (
-    <div>
-      <Button variant="ghost" className="mb-8" asChild>
-        <Link to="/" className="flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Predictions
-        </Link>
-      </Button>
+    <div className="container mx-auto px-4 py-8 min-h-screen relative z-10">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Button variant="ghost" className="mb-8" asChild>
+          <Link to="/" className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Predictions
+          </Link>
+        </Button>
+      </motion.div>
 
-      <div className="flex flex-col gap-8 max-w-2xl mx-auto">
-        <div className="p-6 rounded-lg border border-border">
-          <div className="flex items-center justify-between">
-            <span>Wallet Balance:</span>
-            <span className="text-xl font-bold">{balance} SOL</span>
-          </div>
-        </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col gap-8 max-w-2xl mx-auto"
+      >
+        <Card className="backdrop-blur-sm bg-card/30 overflow-hidden rounded-xl border border-border">
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="rounded-full p-2 bg-primary/20">
+                  <Wallet className="w-5 h-5 text-primary" />
+                </div>
+                <span className="text-muted-foreground">Wallet Balance:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-bold">{balance} SOL</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <CreatePredictionForm
-          onSubmit={handleCreatePrediction}
-          isLoading={loading}
-        />
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <CreatePredictionForm
+            onSubmit={handleCreatePrediction}
+            isLoading={loading}
+          />
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
