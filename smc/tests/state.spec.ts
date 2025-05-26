@@ -19,7 +19,7 @@ import {
 } from "./util/entity";
 import { airdrop, ONE_SOL } from "./util/setup";
 
-describe("State initialization", () => {
+describe("State tests", () => {
   const provider = AnchorProvider.env();
   setProvider(provider);
 

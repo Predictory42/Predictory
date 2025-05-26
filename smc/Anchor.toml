@@ -22,4 +22,5 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run jest state"
+test = "yarn run jest usr"
+# test = "yarn run jest state && yarn run jest user"
