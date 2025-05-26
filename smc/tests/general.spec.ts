@@ -28,7 +28,6 @@ import {
   findProgramDataAddress,
   findUserAddress,
 } from "./util/entity";
-import { assert } from "chai";
 
 const provider = AnchorProvider.env();
 setProvider(provider);
