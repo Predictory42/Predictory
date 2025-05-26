@@ -64,8 +64,8 @@ pub mod predictory {
         ctx.accounts.transfer_stake(stake)
     }
 
-    pub fn withdraw_stake(ctx: Context<WithdrawStake>) -> Result<()> {
-        ctx.accounts.withdraw()
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: Option<u64>) -> Result<()> {
+        ctx.accounts.withdraw(amount)
     }
 
     pub fn create_event(
