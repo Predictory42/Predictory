@@ -184,6 +184,22 @@ describe("State tests", () => {
       expect(fetchedStateAccount.orgReward.eq(orgReward)).toBeTruthy();
     });
 
+    it("success - update event price", async () => {
+      const [state] = findContractStateAddress();
+
+      await program.methods
+        .setEventPrice(eventPrice)
+        .accounts({
+          authority: authority.publicKey,
+        })
+        .signers([authority])
+        .rpc();
+
+      const fetchedStateAccount = await program.account.state.fetch(state);
+
+      expect(fetchedStateAccount.eventPrice.eq(eventPrice)).toBeTruthy();
+    });
+
     it("success - update contract authority", async () => {
       const [state] = findContractStateAddress();
 
