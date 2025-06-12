@@ -7,7 +7,7 @@ export const Header = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="flex items-center justify-between gap-4 mb-8 backdrop-blur-sm bg-popover/30 p-4 rounded-2xl border border-white/10">
+    <header className="flex items-center justify-between gap-4 mb-8 backdrop-blur-sm bg-card/30 p-4 rounded-2xl border border-white/10">
       <Link to="/" className="flex items-center gap-3 group">
         <img
           src="/predictory.webp"
