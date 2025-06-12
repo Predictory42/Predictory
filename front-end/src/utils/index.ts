@@ -25,14 +25,14 @@ export const personImage = (address: string): string => {
 };
 
 export function formatDateTimeCompact(date: Date): string {
-  return date.toLocaleString("en-US", {
+  return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "short",
+    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  });
+  }).format(date);
 }
 
 /**

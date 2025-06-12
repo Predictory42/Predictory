@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { FC } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export const Footer: FC = () => {
   return (
@@ -16,6 +17,7 @@ export const Footer: FC = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4">
+          <ThemeToggle />
           <a
             href="https://x.com/Predictory_"
             target="_blank"
