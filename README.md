@@ -41,3 +41,7 @@ Whether you're forecasting sports outcomes, community events, or industry trends
 ## 📽️ Watch the Pitch
 
 [Watch the Predictory pitch on Loom](https://www.loom.com/share/eb2cd5f5fbb643ddbf0109663cc4020f?sid=0f2651ba-1484-404e-b7c2-760e2d83356f)
+
+## 🛠️ Tech Demo
+
+[Watch the Predictory tech demo on Loom](https://www.loom.com/share/a6550b028cad413396fbcbf2f59c2c03?sid=d1fb42bb-6cd2-4126-a905-133f0ab3b705)
