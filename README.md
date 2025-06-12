@@ -35,3 +35,9 @@ Whether you're forecasting sports outcomes, community events, or industry trends
 ## 🌐 Visit Predictory
 
 [Click here to visit Predictory](https://predictory.vercel.app/)
+
+---
+
+## 📽️ Watch the Pitch
+
+[Watch the Predictory pitch on Loom](https://www.loom.com/share/eb2cd5f5fbb643ddbf0109663cc4020f?sid=0f2651ba-1484-404e-b7c2-760e2d83356f)
